@@ -1,12 +1,15 @@
 package org.starloco.locos.command;
 
 import org.starloco.locos.auction.AuctionManager;
+import org.starloco.locos.area.map.GameMap;
 import org.starloco.locos.client.Player;
 import org.starloco.locos.client.other.Party;
 import org.starloco.locos.common.SocketManager;
 import org.starloco.locos.event.EventManager;
 import org.starloco.locos.game.action.ExchangeAction;
 import org.starloco.locos.game.world.World;
+import org.starloco.locos.database.DatabaseManager;
+import org.starloco.locos.database.data.login.PlayerData;
 import org.starloco.locos.kernel.Config;
 import org.starloco.locos.kernel.Constant;
 import org.starloco.locos.kernel.Logging;
@@ -98,6 +101,12 @@ public class CommandPlayer {
                 return true;
             } else if(command(msg, "event")) {
                 return player.cantTP() || EventManager.getInstance().subscribe(player) == 1;
+            } else if(command(msg, "unlock")) {
+                return commandUnlock(player, msg);
+            } else if(command(msg, "idunlock")) {
+                return commandIdUnlock(player, msg);
+            } else if(command(msg, "tileman")) {
+                return commandTileman(player, msg);
             } else if(command(msg, "auction")) {
                 if(player.cantTP() || player.isDead() != 0 || player.isGhost() || player.isAway() || player.getFight() != null)
                     return true;
@@ -446,6 +455,102 @@ public class CommandPlayer {
             player.noall = true;
             player.sendMessage(player.getLang().trans("command.commandplayer.all.off"));
         }
+        return true;
+    }
+
+    private static boolean commandUnlock(Player player, String msg) {
+        GameMap current = player.getCurMap();
+        if (current == null) {
+            return true;
+        }
+        String[] parts = msg.split(" ");
+        if (parts.length < 2) {
+            player.sendMessage("Usage: .unlock up/down/left/right");
+            return true;
+        }
+
+        int x = current.getX();
+        int y = current.getY();
+        switch (parts[1].toLowerCase()) {
+            case "up":
+                y--;
+                break;
+            case "down":
+                y++;
+                break;
+            case "left":
+                x--;
+                break;
+            case "right":
+                x++;
+                break;
+            default:
+                player.sendMessage("Unknown direction.");
+                return true;
+        }
+
+        ArrayList<GameMap> maps = World.world.getMapByPosInArray(x, y);
+        if (maps.isEmpty()) {
+            player.sendMessage("No map at " + x + "," + y);
+            return true;
+        }
+
+        int mapId = maps.get(0).getId();
+
+        if (player.hasUnlocked(mapId)) {
+            player.sendMessage("Already unlocked map " + mapId);
+            return true;
+        }
+
+        if (player.getTilemanCredits() < 1) {
+            player.sendMessage("Not enough tileman credits");
+            return true;
+        }
+
+        player.unlockMap(mapId);
+        player.setTilemanCredits(player.getTilemanCredits() - 1);
+        ((PlayerData) DatabaseManager.get(PlayerData.class)).update(player);
+        player.sendMessage("Unlocked map " + mapId + ". Credits left: " + player.getTilemanCredits());
+        return true;
+    }
+
+    private static boolean commandIdUnlock(Player player, String msg) {
+        String[] parts = msg.split(" ");
+        if (parts.length < 2) {
+            player.sendMessage("Usage: .unlockid mapId");
+            return true;
+        }
+        try {
+            int mapId = Integer.parseInt(parts[1]);
+            GameMap map = World.world.getMap(mapId);
+            if (map == null) {
+                player.sendMessage("Unknown map " + mapId);
+                return true;
+            }
+
+            if (player.hasUnlocked(mapId)) {
+                player.sendMessage("Already unlocked map " + mapId);
+                return true;
+            }
+
+            if (player.getTilemanCredits() < 1) {
+                player.sendMessage("Not enough tileman credits");
+                return true;
+            }
+
+            player.unlockMap(mapId);
+            player.setTilemanCredits(player.getTilemanCredits() - 1);
+            ((PlayerData) DatabaseManager.get(PlayerData.class)).update(player);
+            player.sendMessage("Unlocked map " + mapId + ". Credits left: " + player.getTilemanCredits());
+        } catch (NumberFormatException e) {
+            player.sendMessage("Usage: .unlockid <mapId>");
+        }
+        return true;
+    }
+
+    private static boolean commandTileman(Player player, String msg) {
+        int requirement = player.getXpForNextCredit();
+        player.sendTypeMessage("Tileman", "Map Credits: " + player.getTilemanCredits() + " / Map Credit XP: " + player.getTilemanCreditXp() + "/ XP to next credit : "  + requirement);
         return true;
     }
 

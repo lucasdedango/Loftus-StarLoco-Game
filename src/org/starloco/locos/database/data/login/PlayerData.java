@@ -10,6 +10,7 @@ import org.starloco.locos.database.DatabaseManager;
 import org.starloco.locos.database.data.FunctionDAO;
 import org.starloco.locos.database.data.game.GuildMemberData;
 import org.starloco.locos.database.data.game.QuestProgressData;
+import org.starloco.locos.database.data.game.UnlockedMapData;
 import org.starloco.locos.game.world.World;
 import org.starloco.locos.kernel.Config;
 import org.starloco.locos.kernel.Constant;
@@ -24,6 +25,8 @@ import java.util.Objects;
 
 public class PlayerData extends FunctionDAO<Player> {
 
+    private static final int[] DEFAULT_UNLOCKED_MAPS = {10294, 10327, 10273, 10337, 10258, 10295};
+
     public PlayerData(HikariDataSource dataSource) {
         super(dataSource, "world_players");
     }
@@ -34,7 +37,7 @@ public class PlayerData extends FunctionDAO<Player> {
     }
 
     private Player buildFromResultSet(ResultSet result) throws SQLException {
-        return new Player(result.getInt("id"), result.getString("name"), result.getInt("groupe"), result.getInt("sexe"),
+        Player player = new Player(result.getInt("id"), result.getString("name"), result.getInt("groupe"), result.getInt("sexe"),
                 result.getInt("class"), result.getInt("color1"), result.getInt("color2"), result.getInt("color3"), result.getLong("kamas"),
                 result.getInt("spellboost"), result.getInt("capital"), result.getInt("energy"), result.getInt("level"), result.getLong("xp"),
                 result.getInt("size"), result.getInt("gfx"), result.getByte("alignement"), result.getInt("account"), this.getStats(result),
@@ -46,6 +49,9 @@ public class PlayerData extends FunctionDAO<Player> {
                 result.getString("morphMode"), result.getString("allTitle"), result.getString("emotes"), result.getLong("prison"),
                 false, result.getString("parcho"), result.getLong("timeDeblo"), result.getBoolean("noall"),
                 result.getString("deadInformation"), result.getByte("deathCount"), result.getLong("totalKills"));
+        player.setTilemanCredits(result.getInt("tileman_credits"));
+        player.setTilemanCreditXp(result.getLong("tileman_credit_xp"));
+        return player;
     }
 
     @Override
@@ -60,6 +66,8 @@ public class PlayerData extends FunctionDAO<Player> {
                 player.setLastFightForEndFightAction(oldPlayer.getLastFight());
 
             player.VerifAndChangeItemPlace();
+
+            player.setUnlockedMaps(DatabaseManager.get(UnlockedMapData.class).getMaps(player.getId()));
 
             DatabaseManager.get(QuestProgressData.class).load(player.getId());
 
@@ -83,7 +91,7 @@ public class PlayerData extends FunctionDAO<Player> {
         boolean ok = true;
         try {
             Connection connection = this.getConnection();
-            String sql = "INSERT INTO " + getTableName() + "(`name`, `sexe`, `class`, `color1`, `color2`, `color3`, `kamas`, `spellboost`, `capital`, `energy`, `level`, `xp`, `size`, `gfx`, `account`, `cell`, `map`, `spells`, `objets`, `storeObjets`, `morphMode`, `server`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'','','0',?)";
+            String sql = "INSERT INTO " + getTableName() + "(`name`, `sexe`, `class`, `color1`, `color2`, `color3`, `kamas`, `spellboost`, `capital`, `energy`, `level`, `xp`, `size`, `gfx`, `account`, `cell`, `map`, `spells`, `objets`, `storeObjets`, `morphMode`, `tileman_credits`, `tileman_credit_xp`, `server`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'','','0',?,?,?,?)";
             statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             statement.setString(1, entity.getName());
             statement.setInt(2, entity.getSexe());
@@ -103,15 +111,19 @@ public class PlayerData extends FunctionDAO<Player> {
             statement.setInt(16, entity.getCurCell().getId());
             statement.setInt(17, entity.getCurMap().getId());
             statement.setString(18, entity.encodeSpellsToDB());
-            statement.setInt(19, Config.gameServerId);
+            statement.setInt(19, entity.getTilemanCredits());
+            statement.setLong(20, entity.getTilemanCreditXp());
+            statement.setInt(21, Config.gameServerId);
 
             int affectedRows = statement.executeUpdate();
             if (affectedRows != 0) {
                 try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         entity.setId(generatedKeys.getInt(1));
-                    }
-                    else {
+                        for (int mapId : DEFAULT_UNLOCKED_MAPS) {
+                            entity.unlockMap(mapId);
+                        }
+                    } else {
                         ok = false;
                     }
                 }
@@ -155,8 +167,7 @@ public class PlayerData extends FunctionDAO<Player> {
     public void update(Player entity) {
         PreparedStatement p = null;
         try {
-            p = getPreparedStatement("UPDATE " + getTableName() + " SET `kamas`= ?, `spellboost`= ?, `capital`= ?, `energy`= ?, `level`= ?, `xp`= ?, `size` = ?, `gfx`= ?, `alignement`= ?, `honor`= ?, `deshonor`= ?, `alvl`= ?, `vitalite`= ?, `force`= ?, `sagesse`= ?, `intelligence`= ?, `chance`= ?, `agilite`= ?, `seeFriend`= ?, `seeAlign`= ?, `seeSeller`= ?, `canaux`= ?, `map`= ?, `cell`= ?, `pdvper`= ?, `spells`= ?, `objets`= ?, `storeObjets`= ?, `savepos`= ?, `zaaps`= ?, `jobs`= ?, `mountxpgive`= ?, `mount`= ?, `title`= ?, `wife`= ?, `morphMode`= ?, `allTitle` = ?, `emotes` = ?, `prison` = ?, `parcho` = ?, `timeDeblo` = ?, `noall` = ?, `deadInformation` = ?, `deathCount` = ?, `totalKills` = ? WHERE `id` = ? LIMIT 1");
-            p.setLong(1, entity.getKamas());
+            p = getPreparedStatement("UPDATE " + getTableName() + " SET `kamas`= ?, `spellboost`= ?, `capital`= ?, `energy`= ?, `level`= ?, `xp`= ?, `size` = ?, `gfx`= ?, `alignement`= ?, `honor`= ?, `deshonor`= ?, `alvl`= ?, `vitalite`= ?, `force`= ?, `sagesse`= ?, `intelligence`= ?, `chance`= ?, `agilite`= ?, `seeFriend`= ?, `seeAlign`= ?, `seeSeller`= ?, `canaux`= ?, `map`= ?, `cell`= ?, `pdvper`= ?, `spells`= ?, `objets`= ?, `storeObjets`= ?, `savepos`= ?, `zaaps`= ?, `jobs`= ?, `mountxpgive`= ?, `mount`= ?, `title`= ?, `wife`= ?, `morphMode`= ?, `allTitle` = ?, `emotes` = ?, `prison` = ?, `parcho` = ?, `timeDeblo` = ?, `noall` = ?, `deadInformation` = ?, `deathCount` = ?, `totalKills` = ?, `tileman_credits` = ?, `tileman_credit_xp` = ? WHERE `id` = ? LIMIT 1");p.setLong(1, entity.getKamas());
             p.setInt(2, entity.get_spellPts());
             p.setInt(3, entity.getCapital());
             p.setInt(4, entity.getEnergy());
@@ -203,7 +214,9 @@ public class PlayerData extends FunctionDAO<Player> {
             p.setString(43, entity.getDeathInformation());
             p.setByte(44, entity.getDeathCount());
             p.setLong(45, entity.getTotalKills());
-            p.setInt(46, entity.getId());
+            p.setInt(46, entity.getTilemanCredits());
+            p.setLong(47, entity.getTilemanCreditXp());
+            p.setInt(48, entity.getId());
             execute(p);
             if (entity.getGuildMember() != null)
                 ((GuildMemberData) DatabaseManager.get(GuildMemberData.class)).update(entity);
@@ -262,9 +275,15 @@ public class PlayerData extends FunctionDAO<Player> {
 
                     Player player = new Player(result.getInt("id"), result.getString("name"), result.getInt("groupe"), result.getInt("sexe"), result.getInt("class"), result.getInt("color1"), result.getInt("color2"), result.getInt("color3"), result.getLong("kamas"), result.getInt("spellboost"), result.getInt("capital"), result.getInt("energy"), result.getInt("level"), result.getLong("xp"), result.getInt("size"), result.getInt("gfx"), result.getByte("alignement"), result.getInt("account"), stats, result.getByte("seeFriend"), result.getByte("seeAlign"), result.getByte("seeSeller"), result.getString("canaux"), result.getShort("map"), result.getInt("cell"), result.getString("objets"), result.getString("storeObjets"), result.getInt("pdvper"), result.getString("spells"), result.getString("savepos"), result.getString("jobs"), result.getInt("mountxpgive"), result.getInt("mount"), result.getInt("honor"), result.getInt("deshonor"), result.getInt("alvl"), result.getString("zaaps"), result.getByte("title"), result.getInt("wife"), result.getString("morphMode"), result.getString("allTitle"), result.getString("emotes"), result.getLong("prison"), false, result.getString("parcho"), result.getLong("timeDeblo"), result.getBoolean("noall"), result.getString("deadInformation"), result.getByte("deathCount"), result.getLong("totalKills"));
 
+                    player.setTilemanCredits(result.getInt("tileman_credits"));
+                    player.setTilemanCreditXp(result.getLong("tileman_credit_xp"));
+                    player.setUnlockedMaps(DatabaseManager.get(UnlockedMapData.class).getMaps(player.getId()));
+
                     if(p != null)
                         player.setLastFightForEndFightAction(p.getLastFight());
                     player.VerifAndChangeItemPlace();
+
+                    player.setUnlockedMaps(DatabaseManager.get(UnlockedMapData.class).getMaps(player.getId()));
 
                     DatabaseManager.get(QuestProgressData.class).load(id);
                     // Find player's guild

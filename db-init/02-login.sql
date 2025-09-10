@@ -12817,14 +12817,20 @@ CREATE TABLE `world_players`  (
   `deadInformation` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '0,0,0,0',
   `deathCount` int(11) NOT NULL DEFAULT 0,
   `totalKills` int(11) NOT NULL DEFAULT 0,
+  `tileman_credits` int(11) NOT NULL DEFAULT 0,
+  `tileman_credit_xp` bigint(20) NOT NULL DEFAULT 0,
   `revive` tinyint(4) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = MyISAM AUTO_INCREMENT = 2 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of world_players
+-- Table structure for player_unlocked_maps
 -- ----------------------------
-INSERT INTO `world_players` VALUES (1, 'Bredravorveidurroth', 1, 0, 1, 8, -1, -1, -1, 0, 0, 0, 10000, 1, 0, 100, 81, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, '*#%!pi$:?', 10294, 280, 100, '141;1;2,142;1;3,143;1;1', '', '', '7411,311', '', '', 0, -1, 0, 0, '0;0', '0;0;1', 0, 601, 0, NULL, '118,0;119,0;123,0;124,0;125,0;126,0', 0, 0, 0, 'Aucun message', 0, 0, '0,0,0,0,0', 0, 0, 0);
+CREATE TABLE IF NOT EXISTS `player_unlocked_maps` (
+  `player_id` int(11) NOT NULL,
+  `map_id` int(11) NOT NULL,
+  PRIMARY KEY (`player_id`, `map_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Table structure for world_players_quests

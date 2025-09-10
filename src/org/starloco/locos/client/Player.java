@@ -149,6 +149,7 @@ public class Player implements Scripted<SPlayer>, Actor {
     private Set<Integer> unlockedMaps = new HashSet<>();
     private int tilemanCredits;
     private long tilemanCreditXp;
+    private boolean autoUnlock;
     private static final double TILEMAN_XP_START = 100.0;
     private static final double TILEMAN_XP_END = 500_000.0;
     private static final double TILEMAN_XP_RATIO = Math.pow(TILEMAN_XP_END / TILEMAN_XP_START, 1.0 / (200 - 1));
@@ -2773,7 +2774,7 @@ public class Player implements Scripted<SPlayer>, Actor {
         this.exp += winxp;
         while (this.getExp() >= xpTable.maxXpAt(this.level) && this.level < xpTable.maxLevel())
             up = levelUp(true, false);
-        addCreditXp(winxp);
+        if (Config.modeTileman) addCreditXp(winxp);
         if (isOnline) {
             if (up)
                 SocketManager.GAME_SEND_NEW_LVL_PACKET(getAccount().getGameClient(), this.getLevel());
@@ -3158,10 +3159,22 @@ public class Player implements Scripted<SPlayer>, Actor {
             return;
         if (map.getCase(newCellID) == null)
             return;
-        if (!forceGDM && !hasUnlocked(newMapID)) {
-            this.sendTypeMessage("Tileman", "You tried to enter a locked map (MapID:" + map.getId() + "), unlock it with the command .idunlock mapId or .unlock up|down|left|right (m1)");
+        if (Config.modeTileman && !forceGDM && !hasUnlocked(newMapID)) {
+            if (isAutoUnlock()) {
+                if (getTilemanCredits() > 0) {
+                    unlockMap(newMapID);
+                    setTilemanCredits(getTilemanCredits() - 1);
+                    ((PlayerData) DatabaseManager.get(PlayerData.class)).update(this);
+                    sendMessage("Unlocked map " + newMapID + ". Credits left: " + getTilemanCredits());
+                } else {
+                    sendMessage("Not enough tileman credits");
+                    return;
+                }
+            } else {
+                this.sendTypeMessage("Tileman", "You tried to enter a locked map (MapID:" + map.getId() + "), unlock it with the command .idunlock mapId or .unlock up|down|left|right (m1)");
                 return;
             }
+        }
 
         if (!forceGDM && client != null && newMapID == this.curMap.getId()) {
             SocketManager.GAME_SEND_ERASE_ON_MAP_TO_MAP(this.curMap, this.getId());
@@ -3238,7 +3251,7 @@ public class Player implements Scripted<SPlayer>, Actor {
                 this.setInHouse(null);
             }
         }
-        logCurrentMapUnlocked();
+        if (Config.modeTileman) logCurrentMapUnlocked();
 
         // We changed map. Call event handler
         DataScriptVM.getInstance().handlers.onMapEnter(this);
@@ -3253,7 +3266,7 @@ public class Player implements Scripted<SPlayer>, Actor {
             return;
         if (map.getCase(cell) == null)
             return;
-        if (!hasUnlocked(map.getId())) {
+        if (Config.modeTileman && !hasUnlocked(map.getId())) {
             this.sendTypeMessage("Tileman", "You tried to enter a locked map (MapID:" + map.getId() + "), unlock it with the command .idunlock mapId or .unlock up|down|left|right (m2)");
             return;
         }
@@ -3324,7 +3337,7 @@ public class Player implements Scripted<SPlayer>, Actor {
             }
         }
 
-        logCurrentMapUnlocked();
+        if (Config.modeTileman) logCurrentMapUnlocked();
     }
 
     public void disconnectInFight() {
@@ -6137,6 +6150,14 @@ public class Player implements Scripted<SPlayer>, Actor {
 
     public void setTilemanCreditXp(long tilemanCreditXp) {
         this.tilemanCreditXp = tilemanCreditXp;
+    }
+
+    public boolean isAutoUnlock() {
+        return autoUnlock;
+    }
+
+    public void setAutoUnlock(boolean autoUnlock) {
+        this.autoUnlock = autoUnlock;
     }
 
     public int getXpForNextCredit() {

@@ -11,7 +11,7 @@ public class Config {
     public static final long startTime = System.currentTimeMillis();
     public static boolean isRunning = false, isSaving = false,
             encryption, debug, logs, subscription, autoReboot, resetLimit, maxPets,
-            allZaap, allEmotes, allowMulePvp, modeChristmas, modeHalloween, modeHeroic, modeEvent;
+            allZaap, allEmotes, allowMulePvp, modeChristmas, modeHalloween, modeHeroic, modeTileman, modeEvent;
 
     public static GameServer gameServer;
     public static ExchangeClient exchangeClient;
@@ -105,6 +105,7 @@ public class Config {
             Config.modeChristmas = Boolean.parseBoolean(properties.getProperty(Params.MODE_CHRISTMAS.toString())); i++;
             Config.modeHalloween = Boolean.parseBoolean(properties.getProperty(Params.MODE_HALLOWEEN.toString())); i++;
             Config.modeHeroic = Boolean.parseBoolean(properties.getProperty(Params.MODE_HEROIC.toString())); i++;
+            Config.modeTileman = Boolean.parseBoolean(properties.getProperty(Params.MODE_TILEMAN.toString())); i++;
             Config.modeEvent = Boolean.parseBoolean(properties.getProperty(Params.MODE_EVENT.toString())); i++;
             Config.timeBetweenEvent = Integer.parseInt(properties.getProperty(Params.TIME_BETWEEN_EVENT.toString()));
         } catch(Exception e) {
@@ -196,6 +197,7 @@ public class Config {
                 .append(Params.MODE_CHRISTMAS).append(" false\n")
                 .append(Params.MODE_HALLOWEEN).append(" false\n")
                 .append(Params.MODE_HEROIC).append(" false\n")
+                .append(Params.MODE_TILEMAN).append(" false\n")
                 .append(Params.MODE_EVENT).append(" false\n")
                 .append(Params.TIME_BETWEEN_EVENT).append(" 60\n");
 
@@ -261,6 +263,7 @@ public class Config {
         MODE_CHRISTMAS("system.server.game.mode.christmas"),
         MODE_HALLOWEEN("system.server.game.mode.halloween"),
         MODE_HEROIC("system.server.game.mode.heroic"),
+        MODE_TILEMAN("system.server.game.mode.tileman"),
         MODE_EVENT("system.server.game.mode.event"),
         TIME_BETWEEN_EVENT("system.server.game.timeBetweenEvent"),
         GAME_DB_HOST("database.game.host"),

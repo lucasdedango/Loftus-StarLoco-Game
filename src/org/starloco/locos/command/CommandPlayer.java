@@ -101,12 +101,14 @@ public class CommandPlayer {
                 return true;
             } else if(command(msg, "event")) {
                 return player.cantTP() || EventManager.getInstance().subscribe(player) == 1;
-            } else if(command(msg, "unlock")) {
+            } else if(Config.modeTileman && command(msg, "unlock")) {
                 return commandUnlock(player, msg);
-            } else if(command(msg, "idunlock")) {
+            } else if(Config.modeTileman && command(msg, "idunlock")) {
                 return commandIdUnlock(player, msg);
-            } else if(command(msg, "tileman")) {
+            } else if(Config.modeTileman && command(msg, "tileman")) {
                 return commandTileman(player, msg);
+            } else if(Config.modeTileman && command(msg, "autounlock")) {
+                return commandAutoUnlock(player, msg);
             } else if(command(msg, "auction")) {
                 if(player.cantTP() || player.isDead() != 0 || player.isGhost() || player.isAway() || player.getFight() != null)
                     return true;
@@ -547,6 +549,25 @@ public class CommandPlayer {
         }
         return true;
     }
+
+    private static boolean commandAutoUnlock(Player player, String msg) {
+        String[] parts = msg.split(" ");
+        if (parts.length < 2) {
+            player.sendMessage("Usage: .autounlock on/off");
+            return true;
+        }
+        if (parts[1].equalsIgnoreCase("on")) {
+            player.setAutoUnlock(true);
+            player.sendMessage("Auto unlock enabled");
+        } else if (parts[1].equalsIgnoreCase("off")) {
+            player.setAutoUnlock(false);
+            player.sendMessage("Auto unlock disabled");
+        } else {
+            player.sendMessage("Usage: .autounlock on/off");
+        }
+        return true;
+    }
+
 
     private static boolean commandTileman(Player player, String msg) {
         int requirement = player.getXpForNextCredit();

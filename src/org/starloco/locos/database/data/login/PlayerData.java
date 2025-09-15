@@ -25,7 +25,7 @@ import java.util.Objects;
 
 public class PlayerData extends FunctionDAO<Player> {
 
-    private static final int[] DEFAULT_UNLOCKED_MAPS = {10294, 10327, 10273, 10337, 10258, 10295};
+    private static final int[] DEFAULT_UNLOCKED_MAPS = {10294, 10327, 10273, 10337, 10258, 10295, 10359, 10360, 10361, 10362, 10363, 10364};
 
     public PlayerData(HikariDataSource dataSource) {
         super(dataSource, "world_players");

@@ -26,6 +26,8 @@ public class Config {
     public static int gameServerId, gamePort, exchangePort, startMap, startCell, startKamas, startLevel, limitByIp, timeBetweenEvent;
     public static short rateXp, rateDrop, rateHonor, rateJob, rateKamas, rateFm;
     public static double rateProspectThreshold;
+    public static int gatherBaseDuration;
+    public static double gatherQuantityMultiplier;
 
     public static void verify(String name) {
         if(new File(name).exists()) load(name);
@@ -88,6 +90,8 @@ public class Config {
             Config.rateKamas = Short.parseShort(properties.getProperty(Params.RATE_KAMAS.toString())); i++;
             Config.rateJob = Short.parseShort(properties.getProperty(Params.RATE_JOB.toString())); i++;
             Config.rateFm = Short.parseShort(properties.getProperty(Params.RATE_FM.toString())); i++;
+            Config.gatherBaseDuration = Integer.parseInt(properties.getProperty(Params.GATHER_BASE_DURATION.toString())); i++;
+            Config.gatherQuantityMultiplier = Double.parseDouble(properties.getProperty(Params.GATHER_QUANTITY_MULTIPLIER.toString())); i++;
             Config.startMessage = properties.getProperty(Params.START_MESSAGE.toString()); i++;
             Config.startLevel = Integer.parseInt(properties.getProperty(Params.START_LEVEL.toString())); i++;
             Config.startKamas = Integer.parseInt(properties.getProperty(Params.START_KAMAS.toString())); i++;
@@ -180,6 +184,8 @@ public class Config {
                 .append(Params.RATE_KAMAS).append(" 1\n")
                 .append(Params.RATE_JOB).append(" 1\n")
                 .append(Params.RATE_FM).append(" 1\n")
+                .append(Params.GATHER_BASE_DURATION).append(" 12000\n")
+                .append(Params.GATHER_QUANTITY_MULTIPLIER).append(" 1\n")
                 .append(Params.START_MESSAGE).append(" \n")
                 .append(Params.START_LEVEL).append(" 1\n")
                 .append(Params.START_KAMAS).append(" 0\n")
@@ -243,6 +249,8 @@ public class Config {
         RATE_JOB("system.server.game.rate.job"),
         RATE_KAMAS("system.server.game.rate.kamas"),
         RATE_FM("system.server.game.rate.fm"),
+        GATHER_BASE_DURATION("system.server.game.gather.baseDuration"),
+        GATHER_QUANTITY_MULTIPLIER("system.server.game.gather.quantityMultiplier"),
         START_MESSAGE("system.server.game.start.message"),
         START_KAMAS("system.server.game.start.kamas"),
         START_LEVEL("system.server.game.start.level"),

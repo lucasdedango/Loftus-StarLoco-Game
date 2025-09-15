@@ -1,4 +1,5 @@
-local GATHER_SKILL_BASE_DURATION = 12000
+local GATHER_SKILL_BASE_DURATION = rawget(_G, "GATHER_SKILL_BASE_DURATION") or 12000
+local GATHER_QUANTITY_MULTIPLIER = rawget(_G, "GATHER_QUANTITY_MULTIPLIER") or 1
 
 ---@type table<number, fun(p:Player, cellId:number)>
 SKILLS = {}
@@ -177,6 +178,8 @@ function registerGatherJobSkills(jobID, toolInfo, skills)
                 itemID = rStack.itemID
                 quantity = rStack.quantity
             end
+
+            quantity = math.max(1, math.floor(quantity * GATHER_QUANTITY_MULTIPLIER))
 
             gatherSkillAddItem(p, itemID, quantity)
             if xp >0 then p:addJobXP(jobID, xp) end

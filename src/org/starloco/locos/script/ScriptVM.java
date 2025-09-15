@@ -24,6 +24,7 @@ import org.starloco.locos.client.Player;
 import org.starloco.locos.game.world.World;
 import org.starloco.locos.game.world.World.Couple;
 import org.starloco.locos.util.Pair;
+import org.starloco.locos.kernel.Config;
 
 import java.io.IOException;
 import java.net.URI;
@@ -61,6 +62,8 @@ public class ScriptVM {
         this.env.rawset("JLogF", new LogF());
         this.env.rawset("loadPack", new LoadPack());
         this.env.rawset("World", World.world.scripted());
+        this.env.rawset("GATHER_SKILL_BASE_DURATION", Config.gatherBaseDuration);
+        this.env.rawset("GATHER_QUANTITY_MULTIPLIER", Config.gatherQuantityMultiplier);
     }
 
     protected void loadData() throws CallException, LoaderException, IOException, CallPausedException, InterruptedException {

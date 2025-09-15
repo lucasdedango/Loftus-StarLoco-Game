@@ -150,9 +150,30 @@ public class Player implements Scripted<SPlayer>, Actor {
     private int tilemanCredits;
     private long tilemanCreditXp;
     private boolean autoUnlock;
-    private static final double TILEMAN_XP_START = 100.0;
-    private static final double TILEMAN_XP_END = 500_000.0;
-    private static final double TILEMAN_XP_RATIO = Math.pow(TILEMAN_XP_END / TILEMAN_XP_START, 1.0 / (200 - 1));
+    private static final int[][] TILEMAN_XP_TABLE = {
+            {1, 5, 400},
+            {6, 10, 1000},
+            {11, 20, 3000},
+            {21, 30, 6500},
+            {31, 40, 15000},
+            {41, 50, 50000},
+            {51, 60, 1500},
+            {61, 70, 1500},
+            {71, 80, 1500},
+            {81, 90, 1500},
+            {91, 100, 1500},
+            {101, 110, 3000},
+            {111, 120, 3000},
+            {121, 130, 3000},
+            {131, 140, 3000},
+            {141, 150, 3000},
+            {151, 160, 3000},
+            {161, 170, 3000},
+            {171, 180, 3000},
+            {181, 190, 3000},
+            {191, 199, 3000},
+            {200, 200, 3000}
+    };
     private Pair<Integer,Integer> _savePos;
     private int _emoteActive = 0;
     private int savestat;
@@ -6162,7 +6183,15 @@ public class Player implements Scripted<SPlayer>, Actor {
 
     public int getXpForNextCredit() {
         int lvl = Math.min(this.level, 200);
-        return (int) Math.round(TILEMAN_XP_START * Math.pow(TILEMAN_XP_RATIO, lvl - 1));
+        if (lvl < TILEMAN_XP_TABLE[0][0]) {
+            return TILEMAN_XP_TABLE[0][2];
+        }
+        for (int[] entry : TILEMAN_XP_TABLE) {
+            if (lvl >= entry[0] && lvl <= entry[1]) {
+                return entry[2];
+            }
+        }
+        return TILEMAN_XP_TABLE[TILEMAN_XP_TABLE.length - 1][2];
     }
 
     public void addCreditXp(long xp) {

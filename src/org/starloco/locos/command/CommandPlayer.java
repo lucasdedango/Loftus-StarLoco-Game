@@ -551,19 +551,11 @@ public class CommandPlayer {
     }
 
     private static boolean commandAutoUnlock(Player player, String msg) {
-        String[] parts = msg.split(" ");
-        if (parts.length < 2) {
-            player.sendMessage("Usage: .autounlock on/off");
-            return true;
-        }
-        if (parts[1].equalsIgnoreCase("on")) {
-            player.setAutoUnlock(true);
+        player.setAutoUnlock(!player.isAutoUnlock());
+        if (player.isAutoUnlock()) {
             player.sendMessage("Auto unlock enabled");
-        } else if (parts[1].equalsIgnoreCase("off")) {
-            player.setAutoUnlock(false);
-            player.sendMessage("Auto unlock disabled");
         } else {
-            player.sendMessage("Usage: .autounlock on/off");
+            player.sendMessage("Auto unlock disabled");
         }
         return true;
     }

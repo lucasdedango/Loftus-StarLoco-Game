@@ -18,6 +18,7 @@ import org.starloco.locos.game.world.World;
 import org.starloco.locos.job.Job;
 import org.starloco.locos.job.JobStat;
 import org.starloco.locos.kernel.Constant;
+import org.starloco.locos.kernel.Config;
 import org.starloco.locos.object.GameObject;
 import org.starloco.locos.object.ObjectTemplate;
 import org.starloco.locos.quest.QuestProgress;
@@ -602,7 +603,8 @@ public class SPlayer extends DefaultUserdata<Player> {
 
         JobStat js = p.getMetierByID(jobID);
         if(js == null) return false;
-        js.addXp(p, xpDelta);
+        long xpGain = (long) xpDelta * Config.rateJob;
+        js.addXp(p, xpGain);
 
         SocketManager.GAME_SEND_JX_PACKET(p, Collections.singletonList(js));
         return true;

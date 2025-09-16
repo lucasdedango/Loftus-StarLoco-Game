@@ -340,32 +340,47 @@ public class CommandPlayer {
     }
 
     private static boolean commandMaster(Player player, String msg) {
+        Logging.getInstance().write("CommandMaster", "Player " + player.getName() + " invoked command: '" + msg + "'");
         String[] split = msg.split(" ");
 
         if(split.length == 2) {
             String name = split[1];
+            Logging.getInstance().write("CommandMaster", "Shortcut form detected. Target candidate name='" + name + "'");
             final Player target = World.world.getPlayerByName(name);
 
             if(target != null && target != player) {
+                Logging.getInstance().write("CommandMaster", "Target player found: '" + target.getName() + "'. Checking party alignment");
                 if(target.getParty() == player.getParty()) {
                     final Party party = target.getParty();
+                    Logging.getInstance().write("CommandMaster", "Target is in the same party. Updating chief and master to '" + target.getName() + "'");
                     party.setChief(target);
                     party.setMaster(target);
 
-                    for(Player member : party.getPlayers())
+                    for(Player member : party.getPlayers()) {
+                        Logging.getInstance().write("CommandMaster", "Notifying party member '" + member.getName() + "' of master change to '" + target.getName() + "'");
                         member.send("PL" + target.getId());
+                    }
                 } else {
                     player.sendMessage(player.getLang().trans("command.commandplayer.master.nogroup.name", name));
+                    Logging.getInstance().write("CommandMaster", "Target '" + target.getName() + "' is not in the same party as '" + player.getName() + "'");
                 }
+            } else if(target == player) {
+                Logging.getInstance().write("CommandMaster", "Player attempted to set themselves as target via shortcut form; ignoring to avoid redundant change");
+            } else {
+                Logging.getInstance().write("CommandMaster", "No online player found with name '" + name + "'");
             }
             return true;
         } else {
-            if (player.cantTP()) return true;
+            if (player.cantTP()) {
+                Logging.getInstance().write("CommandMaster", "Player '" + player.getName() + "' cannot use master command due to cantTP restriction");
+                return true;
+            }
 
             final Party party = player.getParty();
 
             if (party == null) {
                 player.sendMessage(player.getLang().trans("command.commandplayer.master.nogroup"));
+                Logging.getInstance().write("CommandMaster", "Player '" + player.getName() + "' tried to use master command without being in a party");
                 return true;
             }
 
@@ -373,14 +388,17 @@ public class CommandPlayer {
 
             if (!party.getChief().getName().equals(player.getName())) {
                 player.sendMessage(player.getLang().trans("command.commandplayer.master.noking"));
+                Logging.getInstance().write("CommandMaster", "Player '" + player.getName() + "' is not the party chief. Current chief is '" + party.getChief().getName() + "'");
                 return true;
             }
 
             if (msg.length() <= 8 && party.getMaster() != null) {
                 player.sendMessage(player.getLang().trans("command.commandplayer.master.disabled"));
+                Logging.getInstance().write("CommandMaster", "Master mode disabled by chief '" + player.getName() + "'. Previous master was '" + party.getMaster().getName() + "'");
                 players.stream().filter(follower -> follower != party.getMaster())
                         .forEach(follower -> SocketManager.GAME_SEND_MESSAGE(follower, follower.getLang().trans("command.commandplayer.master.nofollow", party.getMaster().getName())));
                 party.setMaster(null);
+                Logging.getInstance().write("CommandMaster", "Party master cleared for party led by '" + player.getName() + "'");
                 return true;
             }
 
@@ -388,27 +406,36 @@ public class CommandPlayer {
 
             if (msg.length() > 8) {
                 String name = msg.substring(8, msg.length() - 1);
+                Logging.getInstance().write("CommandMaster", "Parsed target substring from message: '" + name + "' (raw message length=" + msg.length() + ")");
                 target = World.world.getPlayerByName(name);
+                Logging.getInstance().write("CommandMaster", "Lookup result for parsed name '" + name + "' => " + (target == null ? "null" : "found player '" + target.getName() + "'"));
             }
 
             if (target == null) {
                 player.sendMessage(player.getLang().trans("command.commandplayer.master.noavailable"));
+                Logging.getInstance().write("CommandMaster", "Master command aborted: unable to resolve target from message '" + msg + "'");
                 return true;
             }
             if (target.getParty() == null || !target.getParty().getPlayers().contains(player)) {
                 player.sendMessage(player.getLang().trans("command.commandplayer.master.nogroup.atuser"));
+                Logging.getInstance().write("CommandMaster", "Target '" + target.getName() + "' is not in the same party as chief '" + player.getName() + "'");
                 return true;
             }
 
             party.setMaster(target);
+            Logging.getInstance().write("CommandMaster", "Party master set to '" + target.getName() + "' by chief '" + player.getName() + "'");
 
             final String message = player.getLang().trans("command.commandplayer.master.follow", target.getName());
             for (Player follower : players)
-                if (follower != target)
+                if (follower != target) {
+                    Logging.getInstance().write("CommandMaster", "Notifying follower '" + follower.getName() + "' to follow '" + target.getName() + "'");
                     SocketManager.GAME_SEND_MESSAGE(follower, message);
+                }
 
             party.moveAllPlayersToMaster(null, false);
+            Logging.getInstance().write("CommandMaster", "Triggered moveAllPlayersToMaster for party led by '" + player.getName() + "'");
             SocketManager.GAME_SEND_MESSAGE(target, target.getLang().trans("command.commandplayer.master.master"));
+            Logging.getInstance().write("CommandMaster", "Target '" + target.getName() + "' notified of master status");
             return true;
         }
     }

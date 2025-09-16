@@ -64,7 +64,11 @@ public abstract  class Fighter implements Comparable<Fighter>, Scripted<Object>,
     }
 
     private void init() {
-        this.pdv = this.getPdvMax();
+        this.pdv = Math.max(0, Math.min(this.getPdvMax(), this.getInitialPdv()));
+    }
+
+    protected int getInitialPdv() {
+        return this.getPdvMax();
     }
 
     public static Fighter NewPlayer(Fight f, Player player) {

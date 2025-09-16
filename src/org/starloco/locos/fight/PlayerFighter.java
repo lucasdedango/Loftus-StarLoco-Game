@@ -6,6 +6,7 @@ import org.starloco.locos.common.SocketManager;
 import org.starloco.locos.database.data.game.ExperienceTables;
 import org.starloco.locos.entity.mount.Mount;
 import org.starloco.locos.fight.spells.Spell;
+import org.starloco.locos.fight.spells.SpellEffect;
 import org.starloco.locos.game.world.World;
 import org.starloco.locos.kernel.Constant;
 
@@ -20,6 +21,16 @@ public class PlayerFighter extends Fighter {
     protected PlayerFighter(Fight f, Player player) {
         super(player.getId(), f);
         this.player = player;
+    }
+
+    @Override
+    protected int getInitialPdv() {
+        int current = player.getCurPdv();
+        int vitalityBuff = player.get_buff().values().stream()
+                .filter(effect -> effect.getEffectID() == Constant.STATS_ADD_VITA)
+                .mapToInt(SpellEffect::getValue)
+                .sum();
+        return Math.max(0, current - vitalityBuff);
     }
 
     @Override

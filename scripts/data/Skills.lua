@@ -207,9 +207,21 @@ function ingredientsForCraftJob(jobID)
     return function(p)
         local lvl = p:jobLevel(jobID)
 
-        if lvl == 100 then return 9
-        elseif lvl < 10 then return 2
-        else return lvl/20 + 4 end
+        if lvl >= 90 then
+            return 9
+        elseif lvl >= 70 then
+            return 7
+        elseif lvl >= 50 then
+            return 6
+        elseif lvl >= 30 then
+            return 5
+        elseif lvl >= 10 then
+            return 4
+        elseif lvl >= 1 then
+            return 3
+        else
+            return 2
+        end
     end
 end
 
@@ -218,8 +230,13 @@ function successRateForCraftJob(jobID)
     return function(p)
         local lvl = p:jobLevel(jobID)
 
-        if lvl == 100 then  return 99
-        elseif lvl < 10 then return 50
-        else return 54 + ((lvl / 10) - 1) * 5 end
+        if lvl >= 90 then
+            return 99
+        elseif lvl < 10 then
+            return 50
+        else
+            local step = math.floor((lvl + 10) / 10) - 1
+            return 54 + step * 5
+        end
     end
 end

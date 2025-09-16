@@ -3669,7 +3669,7 @@ public class Action {
                         JobStat metierBase = player.getMetierByID(World.world.getMetierByMaging(metierID));
                         if (metierBase == null)
                             return true; // Si la base n'existe pas
-                        if (metierBase.get_lvl() < 65) {
+                        if (metierBase.get_lvl() < 30) {
                             SocketManager.GAME_SEND_Im_PACKET(player, "111");
                             return true; // Si la base n'est pas assez hl
                         } else if (player.totalJobFM() > 2) {

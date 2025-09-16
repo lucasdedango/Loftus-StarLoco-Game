@@ -4858,8 +4858,9 @@ public class Fight {
                             if (prospecting < 1) prospecting = 1;
 
 
-                            final double jet = Math.random() * 100;
                             final double chance = drop.getLocalPercent() * prospecting * World.world.getConquestBonus(player) * challengeFactor * starFactor * Config.rateDrop;
+                            final int rolls = Math.max(1, Config.rateDropRolls);
+                            int successCount = 0;
                             boolean ok = false;
 
                             switch (drop.getAction()) {
@@ -4868,110 +4869,127 @@ public class Fight {
                                         ok = true;
                                     break;
                             }
-                            if (jet < chance || ok) {
+
+                            for (int roll = 0; roll < rolls; roll++) {
+                                final double jet = Math.random() * 100;
+                                if (jet < chance) {
+                                    successCount++;
+                                }
+                            }
+
+                            if (successCount == 0 && ok) {
+                                successCount = 1;
+                            }
+
+                            if (successCount > 0) {
                                 ObjectTemplate objectTemplate = World.world.getObjTemplate(drop.getObjectId());
 
                                 if (objectTemplate == null)
                                     continue;
 
-                                quantity = 1;
-                                boolean itsOk = false, unique = false;
-                                switch (drop.getAction()) {
-                                    case -2:
-                                        unique = true;
-                                        itsOk = true;
-                                        break;
-                                    case -1:// All items without condition.
-                                        itsOk = true;
-                                        break;
-
-                                    case 1:// Is meat so..
-                                        break;
-
-                                    case 2:// Verification of the condition (MAP)
-                                        for (String id : drop.getCondition().split(","))
-                                            if (id.equals(String.valueOf(getMap().getId())))
-                                                itsOk = true;
-                                        break;
-
-                                    case 3:// Alignement
-                                        if (this.getMapOld().getSubArea() == null)
-                                            break;
-                                        switch (drop.getCondition()) {
-                                            case "0":
-                                                if (this.getMapOld().getSubArea().getAlignment() == 2)
-                                                    itsOk = true;
-                                                break;
-                                            case "1":
-                                                if (this.getMapOld().getSubArea().getAlignment() == 1)
-                                                    itsOk = true;
-                                                break;
-                                            case "2":
-                                                if (this.getMapOld().getSubArea().getAlignment() == 2)
-                                                    itsOk = true;
-                                                break;
-                                            case "3":
-                                                if (this.getMapOld().getSubArea().getAlignment() == 3)
-                                                    itsOk = true;
-                                                break;
-                                            default:
-                                                itsOk = true;
-                                                break;
-                                        }
-                                        break;
-
-                                    case 4: // Quete
-                                        if (World.world.getConditionManager().validConditions(player, "QE=" + drop.getCondition()))
+                                for (int success = 0; success < successCount; success++) {
+                                    quantity = 1;
+                                    boolean itsOk = false, unique = false;
+                                    switch (drop.getAction()) {
+                                        case -2:
+                                            unique = true;
                                             itsOk = true;
-                                        break;
-
-                                    case 5: // Dropable une seule fois
-                                        if (player == null) break;
-                                        if (player.getNbItemTemplate(objectTemplate.getId()) > 0) break;
-                                        itsOk = true;
-                                        break;
-
-                                    case 6: // Avoir l'objet
-                                        if (player == null) break;
-                                        int item = Integer.parseInt(drop.getCondition());
-                                        if (item == 2039) {
-                                            if (this.getMap().getId() == (short) 7388) {
-                                                if (player.hasItemTemplate(item, 1, false))
-                                                    itsOk = true;
-                                            } else
-                                                itsOk = false;
-                                        } else if (player.hasItemTemplate(item, 1, false))
-                                            itsOk = true;
-                                        break;
-
-                                    case 7:// Verification of the condition (MAP) mais pas plusieurs fois
-                                        if (player == null) break;
-                                        if (player.hasItemTemplate(objectTemplate.getId(), 1, false))
                                             break;
-                                        for (String id : drop.getCondition().split(",")) {
-                                            if (id.equals(String.valueOf(this.getMap().getId()))) {
-                                                itsOk = true;
+                                        case -1:// All items without condition.
+                                            itsOk = true;
+                                            break;
+
+                                        case 1:// Is meat so..
+                                            break;
+
+                                        case 2:// Verification of the condition (MAP)
+                                            for (String id : drop.getCondition().split(","))
+                                                if (id.equals(String.valueOf(getMap().getId())))
+                                                    itsOk = true;
+                                            break;
+
+                                        case 3:// Alignement
+                                            if (this.getMapOld().getSubArea() == null)
+                                                break;
+                                            switch (drop.getCondition()) {
+                                                case "0":
+                                                    if (this.getMapOld().getSubArea().getAlignment() == 2)
+                                                        itsOk = true;
+                                                    break;
+                                                case "1":
+                                                    if (this.getMapOld().getSubArea().getAlignment() == 1)
+                                                        itsOk = true;
+                                                    break;
+                                                case "2":
+                                                    if (this.getMapOld().getSubArea().getAlignment() == 2)
+                                                        itsOk = true;
+                                                    break;
+                                                case "3":
+                                                    if (this.getMapOld().getSubArea().getAlignment() == 3)
+                                                        itsOk = true;
+                                                    break;
+                                                default:
+                                                    itsOk = true;
+                                                    break;
                                             }
+                                            break;
+
+                                        case 4: // Quete
+                                            if (World.world.getConditionManager().validConditions(player, "QE=" + drop.getCondition()))
+                                                itsOk = true;
+                                            break;
+
+                                        case 5: // Dropable une seule fois
+                                            if (player == null) break;
+                                            if (player.getNbItemTemplate(objectTemplate.getId()) > 0) break;
+                                            itsOk = true;
+                                            break;
+
+                                        case 6: // Avoir l'objet
+                                            if (player == null) break;
+                                            int item = Integer.parseInt(drop.getCondition());
+                                            if (item == 2039) {
+                                                if (this.getMap().getId() == (short) 7388) {
+                                                    if (player.hasItemTemplate(item, 1, false))
+                                                        itsOk = true;
+                                                } else
+                                                    itsOk = false;
+                                            } else if (player.hasItemTemplate(item, 1, false))
+                                                itsOk = true;
+                                            break;
+
+                                        case 7:// Verification of the condition (MAP) mais pas plusieurs fois
+                                            if (player == null) break;
+                                            if (player.hasItemTemplate(objectTemplate.getId(), 1, false))
+                                                break;
+                                            for (String id : drop.getCondition().split(",")) {
+                                                if (id.equals(String.valueOf(this.getMap().getId()))) {
+                                                    itsOk = true;
+                                                }
+                                            }
+                                            break;
+
+                                        case 8:// Win a specific quantity
+                                            String[] split = drop.getCondition().split(",");
+                                            quantity = Formulas.getRandomValue(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
+                                            itsOk = true;
+                                            break;
+
+                                        case 999:// Drop for collector
+                                            itsOk = true;
+                                            break;
+
+                                        default:
+                                            itsOk = true;
+                                            break;
+                                    }
+                                    if (itsOk) {
+                                        objectsWon.put(objectTemplate.getId(), objectsWon.get(objectTemplate.getId()) == null ? quantity : objectsWon.get(objectTemplate.getId()) + quantity);
+                                        if (unique) {
+                                            dropsPlayers.remove(drop);
+                                            break;
                                         }
-                                        break;
-
-                                    case 8:// Win a specific quantity
-                                        String[] split = drop.getCondition().split(",");
-                                        quantity = Formulas.getRandomValue(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
-                                        itsOk = true;
-                                        break;
-
-                                    case 999:// Drop for collector
-                                        itsOk = true;
-                                        break;
-
-                                    default:
-                                        itsOk = true;
-                                        break;
-                                }
-                                if (itsOk) {
-                                    objectsWon.put(objectTemplate.getId(), objectsWon.get(objectTemplate.getId()) == null ? quantity : objectsWon.get(objectTemplate.getId()) + quantity);
-                                    if (unique) dropsPlayers.remove(drop);
+                                    }
                                 }
                             }
                         }

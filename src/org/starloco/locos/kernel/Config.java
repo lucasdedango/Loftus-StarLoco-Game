@@ -25,6 +25,7 @@ public class Config {
     public static String gameIp, exchangeIp, exchangeKey, version, gameServerKey, startMessage;
     public static int gameServerId, gamePort, exchangePort, startMap, startCell, startKamas, startLevel, limitByIp, timeBetweenEvent;
     public static short rateXp, rateDrop, rateHonor, rateJob, rateKamas, rateFm;
+    public static int rateDropRolls;
     public static double rateProspectThreshold;
     public static int gatherBaseDuration;
     public static double gatherQuantityMultiplier;
@@ -85,6 +86,7 @@ public class Config {
             Config.version = properties.getProperty(Params.VERSION.toString()); i++;
             Config.rateXp = Short.parseShort(properties.getProperty(Params.RATE_XP.toString())); i++;
             Config.rateDrop = Short.parseShort(properties.getProperty(Params.RATE_DROP.toString())); i++;
+            Config.rateDropRolls = Integer.parseInt(properties.getProperty(Params.RATE_DROP_ROLLS.toString())); i++;
             Config.rateProspectThreshold = Double.parseDouble(properties.getProperty(Params.RATE_PROSPECT_THRESHOLD.toString())); i++;
             Config.rateHonor = Short.parseShort(properties.getProperty(Params.RATE_HONOR.toString())); i++;
             Config.rateKamas = Short.parseShort(properties.getProperty(Params.RATE_KAMAS.toString())); i++;
@@ -179,6 +181,7 @@ public class Config {
                 .append(Params.VERSION).append(" 1.39.9e\n")
                 .append(Params.RATE_XP).append(" 1\n")
                 .append(Params.RATE_DROP).append(" 1\n")
+                .append(Params.RATE_DROP_ROLLS).append(" 1\n")
                 .append(Params.RATE_PROSPECT_THRESHOLD).append(" 1\n")
                 .append(Params.RATE_HONOR).append(" 1\n")
                 .append(Params.RATE_KAMAS).append(" 1\n")
@@ -244,6 +247,7 @@ public class Config {
         VERSION("system.server.game.version"),
         RATE_XP("system.server.game.rate.xp"),
         RATE_DROP("system.server.game.rate.drop"),
+        RATE_DROP_ROLLS("system.server.game.rate.dropRolls"),
         RATE_PROSPECT_THRESHOLD("system.server.game.rate.dropThreshold"),
         RATE_HONOR("system.server.game.rate.honor"),
         RATE_JOB("system.server.game.rate.job"),

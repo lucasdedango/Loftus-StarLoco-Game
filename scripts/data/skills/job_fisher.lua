@@ -2,20 +2,19 @@ local jobID = FishermanJob
 local toolIDs = {596, 1860, 1861, 1862, 1863, 1864, 1865, 1866, 1867, 1868, 8541}
 local rareFishChance = 0.1
 
---FIXME timing
 local gatherSkills = {
-    {id=136,  obj=Objects.Snapper,        xp=5,  minLvl=0,  respawn={6000, 10000}, fishes={2187}, toolID = 2188 },
-    {id=140,  obj=Objects.StrangeShadow,  xp=50, minLvl=0,  respawn={6000, 10000}, fishes={1759} },
+    {id=136,  obj=Objects.Snapper,        xp=5,  minLvl=0,  respawn={240000, 480000},   fishes={2187}, toolID = 2188 },
+    {id=140,  obj=Objects.StrangeShadow,  xp=50, minLvl=0,  respawn={900000, 1800000},  fishes={1759} },
 
-    {id=124,  obj=Objects.SmallRiverFish, xp=10, minLvl=0,  respawn={6000, 10000}, fishes={1782, 1844, 603} },
-    {id=125,  obj=Objects.RiverFish,      xp=15, minLvl=10, respawn={6000, 10000}, fishes={1844, 603, 1847, 1794} },
-    {id=126,  obj=Objects.BigRiverFish,   xp=30, minLvl=40, respawn={6000, 10000}, fishes={603, 1847, 1794, 1779} },
-    {id=127,  obj=Objects.GiantRiverFish, xp=45, minLvl=70, respawn={6000, 10000}, fishes={1847, 1794, 1779, 1801} },
+    {id=124,  obj=Objects.SmallRiverFish, xp=10, minLvl=0,  respawn={300000, 600000},   fishes={1782, 1844, 603} },
+    {id=125,  obj=Objects.RiverFish,      xp=15, minLvl=10, respawn={360000, 720000},   fishes={1844, 603, 1847, 1794} },
+    {id=126,  obj=Objects.BigRiverFish,   xp=30, minLvl=40, respawn={480000, 960000},   fishes={603, 1847, 1794, 1779} },
+    {id=127,  obj=Objects.GiantRiverFish, xp=45, minLvl=70, respawn={600000, 1200000},  fishes={1847, 1794, 1779, 1801} },
 
-    {id=128,  obj=Objects.SmallSeaFish,   xp=10, minLvl=0,  respawn={6000, 10000}, fishes={598, 1757, 1750} },
-    {id=129,  obj=Objects.SeaFish,        xp=20, minLvl=20, respawn={6000, 10000}, fishes={1757, 1805, 600} },
-    {id=130,  obj=Objects.BigSeaFish,     xp=35, minLvl=50, respawn={6000, 10000}, fishes={1805, 1750, 1784, 600} },
-    {id=131,  obj=Objects.GiantSeaFish,   xp=50, minLvl=75, respawn={6000, 10000}, fishes={600, 1805, 602, 1784} },
+    {id=128,  obj=Objects.SmallSeaFish,   xp=10, minLvl=0,  respawn={300000, 660000},   fishes={598, 1757, 1750} },
+    {id=129,  obj=Objects.SeaFish,        xp=20, minLvl=20, respawn={420000, 840000},   fishes={1757, 1805, 600} },
+    {id=130,  obj=Objects.BigSeaFish,     xp=35, minLvl=50, respawn={540000, 1080000},  fishes={1805, 1750, 1784, 600} },
+    {id=131,  obj=Objects.GiantSeaFish,   xp=50, minLvl=75, respawn={720000, 1440000},  fishes={600, 1805, 602, 1784} },
 }
 
 -- Empty fish

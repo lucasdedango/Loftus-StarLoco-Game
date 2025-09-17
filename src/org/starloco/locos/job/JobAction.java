@@ -104,6 +104,24 @@ public class JobAction {
         return -1;
     }
 
+    private String formatIngredients(Map<Integer, Integer> aggregatedIngredients) {
+        if (aggregatedIngredients == null || aggregatedIngredients.isEmpty()) {
+            return "{}";
+        }
+        StringBuilder builder = new StringBuilder("{");
+        boolean first = true;
+        for (Entry<Integer, Integer> entry : aggregatedIngredients.entrySet()) {
+            if (!first) {
+                builder.append(", ");
+            } else {
+                first = false;
+            }
+            builder.append(entry.getKey()).append("=").append(entry.getValue());
+        }
+        builder.append('}');
+        return builder.toString();
+    }
+
     public void addIngredient(Player player, int id, int quantity) {
         int oldQuantity = this.ingredients.get(id) == null ? 0 : this.ingredients.get(id);
         if(quantity < 0) if(- quantity > oldQuantity) return;
@@ -315,7 +333,8 @@ public class JobAction {
                 SocketManager.GAME_SEND_OBJECT_QUANTITY_PACKET(this.player, obj);
             }
 
-            items.put(obj.getTemplate().getId(), e.getValue());
+            int templateId = obj.getTemplate().getId();
+            items.merge(templateId, e.getValue(), Integer::sum);
         }
 
         boolean signed = false;
@@ -327,17 +346,39 @@ public class JobAction {
 
         SocketManager.GAME_SEND_Ow_PACKET(this.player);
 
-        boolean isUnjobSkill = this.getJobStat() == null;
+        JobStat jobStat = this.player.getMetierBySkill(this.id);
+        this.SM = jobStat;
+        boolean isUnjobSkill = jobStat == null;
 
         if (!isUnjobSkill) {
-            JobStat SM = this.player.getMetierBySkill(this.id);
-            int templateId = World.world.getObjectByIngredientForJob(SM.getTemplate().getListBySkill(this.id), items);
+            Job jobTemplate = jobStat.getTemplate();
+            Job resolvedJob = jobTemplate;
+            ArrayList<Integer> craftableTemplates = null;
+            if (jobTemplate != null) {
+                craftableTemplates = jobTemplate.getListBySkill(this.id);
+            }
+            if (craftableTemplates == null && jobTemplate != null) {
+                Job fallback = World.world.getMetier(jobTemplate.getId());
+                if (fallback != null) {
+                    resolvedJob = fallback;
+                    craftableTemplates = fallback.getListBySkill(this.id);
+                }
+            }
+
+            int templateId = World.world.getObjectByIngredientForJob(craftableTemplates, items);
             //Recette non existante ou pas adapt� au m�tier
-            if (templateId == -1 || !SM.getTemplate().canCraft(this.id, templateId)) {
-                if (Logging.USE_LOG)
-                    Logging.getInstance().write("Craft", this.player.getName() + " à crafter une recette inconnu : " + templateId  +")");
-                player.sendMessage("Undefined craft (" + templateId + "), ingredients : (please contact an admin)");
-                for(Entry<Integer, Integer> entry : ingredients.entrySet())
+            if (templateId == -1 || resolvedJob == null || !resolvedJob.canCraft(this.id, templateId)) {
+                if (Logging.USE_LOG) {
+                    Logging.getInstance().write("Craft", "Undefined craft for player " + this.player.getName()
+                            + ", skill=" + this.id
+                            + ", job=" + (resolvedJob != null ? resolvedJob.getId() : "null")
+                            + ", level=" + jobStat.get_lvl()
+                            + ", template=" + templateId
+                            + ", craftList=" + (craftableTemplates != null ? craftableTemplates.size() : "null")
+                            + ", ingredients=" + formatIngredients(items));
+                }
+                player.sendMessage("Undefined craft (" + templateId + "), skill : " + this.id + ". Ingredients (templateId x quantity) :");
+                for(Entry<Integer, Integer> entry : items.entrySet())
                     player.sendMessage(entry.getKey() + " x" + entry.getValue());
                 SocketManager.GAME_SEND_Ec_PACKET(this.player, "EI");
                 SocketManager.GAME_SEND_IO_PACKET_TO_MAP(this.player.getCurMap(), this.player.getId(), "-");
@@ -345,13 +386,13 @@ public class JobAction {
                 return;
             }
 
-            int chan = JobConstant.getChanceByNbrCaseByLvl(SM.get_lvl(), this.ingredients.size());
+            int chan = JobConstant.getChanceByNbrCaseByLvl(jobStat.get_lvl(), this.ingredients.size());
             boolean success = chan >= Formulas.getRandomValue(0, 100);
 
             if(chan == 99) {
                 success = chan * 2 >= Formulas.getRandomValue(0, 200);
             }
-            if(SM.get_lvl() == 100)
+            if(jobStat.get_lvl() == 100)
                 success = true;
 
             switch (this.id) {
@@ -385,14 +426,14 @@ public class JobAction {
 
             int winXP = 0;
             if (success)
-                winXP = Formulas.calculXpWinCraft(SM.get_lvl(), this.ingredients.size()) * Config.rateJob;
-            else if (!SM.getTemplate().isMaging())
-                winXP = Formulas.calculXpWinCraft(SM.get_lvl(), this.ingredients.size()) * Config.rateJob;
+                winXP = Formulas.calculXpWinCraft(jobStat.get_lvl(), this.ingredients.size()) * Config.rateJob;
+            else if (!jobStat.getTemplate().isMaging())
+                winXP = Formulas.calculXpWinCraft(jobStat.get_lvl(), this.ingredients.size()) * Config.rateJob;
 
             if (winXP > 0) {
-                SM.addXp(this.player, winXP);
+                jobStat.addXp(this.player, winXP);
                 ArrayList<JobStat> SMs = new ArrayList<>();
-                SMs.add(SM);
+                SMs.add(jobStat);
                 SocketManager.GAME_SEND_JX_PACKET(this.player, SMs);
             }
         } else {

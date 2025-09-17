@@ -107,6 +107,9 @@ function Player:energy() end
 function Player:modEnergy(energy) end
 
 ---@return boolean
+function Player:isOnMount() end
+
+---@return boolean
 function Player:isGhost() end
 
 ---@return boolean
@@ -201,6 +204,12 @@ function Player:mapID() end
 ---@return Map
 function Player:map() end
 
+---@return House|nil
+function Player:inHouse() end
+
+---@param house House|nil
+function Player:setInHouse(house) end
+
 ---@return number
 function Player:cell() end
 
@@ -233,6 +242,9 @@ function Player:sendAction(id,type, val) end
 ---@param id number
 ---@return void
 function Player:sendInfoMsg(type, id) end
+
+---@param message string
+function Player:sendServerMessage(message) end
 
 ---@return number[] job IDs
 function Player:jobs() end
@@ -388,6 +400,11 @@ function World:subArea(id) end
 ---@return Map
 function World:map(id) end
 
+---@param mapId number
+---@param cellId number
+---@return House|nil
+function World:house(mapId, cellId) end
+
 ---@param delay number in milliseconds
 ---@param fn fun
 function World:delayForMs(delay, fn) end
@@ -449,11 +466,57 @@ function Map:setCellData(cellId, field, val) end
 ---@param field string
 function Map:resetCellData(cellId, field) end
 
+---@param cellId number
+---@param checkObject boolean defaults to true
+---@param inFight boolean defaults to false
+---@param targetCell number defaults to cellId
+---@return boolean
+function Map:isCellWalkable(cellId, checkObject, inFight, targetCell) end
+
 ---@param p Player
 ---@param id number
 ---@param type number
 ---@param val string
 function Map:sendAction(p, id, type, val) end
+
+---@class House
+local House = {}
+
+---@return number
+function House:id() end
+
+---@return number
+function House:mapId() end
+
+---@return number
+function House:cellId() end
+
+---@return number
+function House:ownerId() end
+
+---@return number
+function House:guildId() end
+
+---@return number
+function House:salePrice() end
+
+---@return number
+function House:houseMapId() end
+
+---@return number
+function House:houseCellId() end
+
+---@param player Player
+function House:enter(player) end
+
+---@param player Player
+function House:lock(player) end
+
+---@param player Player
+function House:buy(player) end
+
+---@param player Player
+function House:sell(player) end
 
 -- Area
 ---@class Area

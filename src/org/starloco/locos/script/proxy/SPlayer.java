@@ -9,6 +9,7 @@ import org.classdump.luna.runtime.LuaFunction;
 import org.starloco.locos.area.map.GameMap;
 import org.starloco.locos.client.Player;
 import org.starloco.locos.common.SocketManager;
+import org.starloco.locos.entity.map.House;
 import org.starloco.locos.entity.monster.MobGroupDef;
 import org.starloco.locos.entity.monster.MonsterGroup;
 import org.starloco.locos.fight.spells.Spell;
@@ -200,6 +201,11 @@ public class SPlayer extends DefaultUserdata<Player> {
     }
 
     @SuppressWarnings("unused")
+    private static boolean isOnMount(Player p) {
+        return p.isOnMount();
+    }
+
+    @SuppressWarnings("unused")
     private static boolean isGhost(Player p) {
         return p.isGhost();
     }
@@ -230,6 +236,12 @@ public class SPlayer extends DefaultUserdata<Player> {
         int msgId = args.nextInt();
 
         SocketManager.GAME_SEND_Im_PACKET(p, type+String.valueOf(msgId));
+    }
+
+    @SuppressWarnings("unused")
+    private static void sendServerMessage(Player p, ArgumentIterator args) {
+        String message = args.nextString().toString();
+        p.sendServerMessage(message);
     }
 
     @SuppressWarnings("unused")
@@ -438,6 +450,26 @@ public class SPlayer extends DefaultUserdata<Player> {
     @SuppressWarnings("unused")
     private static SMap map(Player p) {
         return p.getCurMap().scripted();
+    }
+
+    @SuppressWarnings("unused")
+    private static SHouse inHouse(Player p) {
+        return Optional.ofNullable(p.getInHouse()).map(House::scripted).orElse(null);
+    }
+
+    @SuppressWarnings("unused")
+    private static void setInHouse(Player p, ArgumentIterator args) {
+        Object value = args.nextOptionalAny(null);
+        House house = null;
+
+        if(value != null) {
+            if(!(value instanceof SHouse)) {
+                throw new IllegalArgumentException("Player:setInHouse expects a House userdata or nil");
+            }
+            house = ((SHouse) value).getUserValue();
+        }
+
+        p.setInHouse(house);
     }
 
     @SuppressWarnings("unused")

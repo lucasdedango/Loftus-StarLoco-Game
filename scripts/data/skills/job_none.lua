@@ -1,5 +1,15 @@
 -- SKILLS NOT LINKED TO A JOB
 
+local function houseAt(p, cellId)
+    local map = p:map()
+    if not map then return nil end
+    return World:house(map:id(), cellId)
+end
+
+local function houseDoorBroken(p)
+    p:sendServerMessage("Cette maison est inaccessible pour le moment.")
+end
+
 -- No skill object use
 SKILLS[0] = function(p, cellID)
     -- print("SKILL 0 USED", p:name(), cellID)
@@ -17,6 +27,61 @@ SKILLS[0] = function(p, cellID)
 
     return handler(p, 0)
 end
+
+-- Lock house door
+SKILLS[81] = function(p, cellId)
+    local house = houseAt(p, cellId)
+    if not house then return end
+
+    p:setInHouse(house)
+    house:lock(p)
+end
+
+-- Enter house
+SKILLS[84] = function(p, cellId)
+    local house = houseAt(p, cellId)
+    if not house then return end
+
+    local interiorMap = World:map(house:houseMapId())
+    if not interiorMap then
+        houseDoorBroken(p)
+        return
+    end
+
+    if not interiorMap:isCellWalkable(house:houseCellId()) then
+        houseDoorBroken(p)
+        return
+    end
+
+    if p:isOnMount() then
+        p:sendInfoMsg(1, 118)
+        return
+    end
+
+    p:setInHouse(house)
+    house:enter(p)
+end
+
+-- Buy house
+SKILLS[97] = function(p, cellId)
+    local house = houseAt(p, cellId)
+    if not house then return end
+
+    p:setInHouse(house)
+    house:buy(p)
+end
+
+-- Sell house / update price
+local function houseSell(p, cellId)
+    local house = houseAt(p, cellId)
+    if not house then return end
+
+    p:setInHouse(house)
+    house:sell(p)
+end
+
+SKILLS[98] = houseSell
+SKILLS[108] = houseSell
 
 -- Save Zaap
 SKILLS[44] = function(p, _)

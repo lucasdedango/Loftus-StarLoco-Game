@@ -108,6 +108,20 @@ public class SMap extends DefaultUserdata<GameMap> {
     }
 
     @SuppressWarnings("unused")
+    private static boolean isCellWalkable(GameMap m, ArgumentIterator args) {
+        int cellId = args.nextInt();
+        boolean checkObject = args.nextOptionalBoolean(true);
+        boolean inFight = args.nextOptionalBoolean(false);
+        int targetCell = args.nextOptionalInt(cellId);
+
+        if(m.getCase(cellId) == null) {
+            return false;
+        }
+
+        return m.getCase(cellId).isWalkable(checkObject, inFight, targetCell);
+    }
+
+    @SuppressWarnings("unused")
     private static void sendAction(GameMap m, ArgumentIterator args) {
         Player p = args.nextUserdata("SPlayer", SPlayer.class).getUserValue();
         int actionID = args.nextInt();

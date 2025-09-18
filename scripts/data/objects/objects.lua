@@ -109,6 +109,8 @@ Objects.CardRecycler = RegisterIODef(130, JobToolsObjectType, {188})
 Objects.MagicTable = RegisterIODef(131, JobToolsObjectType, {189})
 
 
+Objects.GuildCreationAltar = RegisterIODef(132, NoMenuObjectType, {0})
+
 -- NoMenu Objects
 -- Objects you usually just run to
 Objects.Phoenix = RegisterIODef(10000, NoMenuObjectType, {0})

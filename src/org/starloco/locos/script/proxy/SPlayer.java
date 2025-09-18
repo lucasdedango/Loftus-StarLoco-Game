@@ -107,6 +107,26 @@ public class SPlayer extends DefaultUserdata<Player> {
     }
 
     @SuppressWarnings("unused")
+    private static boolean openGuildCreation(Player p) {
+        if (p.isAway()) {
+            return false;
+        }
+
+        if (p.getGuild() != null || p.getGuildMember() != null) {
+            SocketManager.GAME_SEND_gC_PACKET(p, "Ea");
+            return false;
+        }
+
+        if (!p.hasItemTemplate(1575, 1, false)) {
+            SocketManager.GAME_SEND_MESSAGE(p, p.getLang().trans("other.action.apply.error.guild.create.noguildalogemme"));
+            return false;
+        }
+
+        SocketManager.GAME_SEND_gn_PACKET(p);
+        return true;
+    }
+
+    @SuppressWarnings("unused")
     private static boolean setExchangeAction(Player p, ArgumentIterator args) {
         if(p.getExchangeAction() != null) return false;
 

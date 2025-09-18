@@ -20,4 +20,10 @@ map.onMovementEnd = {
 	[343] = moveEndTeleport(2195, 178),
 }
 
+map.onObjectUse = {
+	[253] = function(p, _)
+		return p:openGuildCreation()
+	end,
+}
+
 

@@ -152,6 +152,9 @@ function Player:openZaapi() end
 ---@return void
 function Player:openTrunk(cellID) end
 
+---@return boolean
+function Player:openGuildCreation() end
+
 ---@param typeID number
 ---@return boolean worked
 function Player:setExchangeAction(typeID) end

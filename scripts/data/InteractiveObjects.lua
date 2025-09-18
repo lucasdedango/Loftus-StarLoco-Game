@@ -217,6 +217,7 @@ local GfxToObjectId = {
     [6632] = 131,
 
     -- NoMenu objects
+    [1324] = 132, -- Guild creation altar
     [542] = 10000, -- Phoenix
     [1531] = 10001, -- Sign
     [1985] = 10002, -- Wanted scroll (Up)

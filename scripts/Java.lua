@@ -408,6 +408,15 @@ function World:map(id) end
 ---@return House|nil
 function World:house(mapId, cellId) end
 
+---@param id number
+---@return House|nil
+function World:houseById(id) end
+
+---@param mapId number
+---@param cellId number
+---@return Trunk|nil
+function World:trunk(mapId, cellId) end
+
 ---@param delay number in milliseconds
 ---@param fn fun
 function World:delayForMs(delay, fn) end
@@ -520,6 +529,36 @@ function House:buy(player) end
 
 ---@param player Player
 function House:sell(player) end
+
+---@class Trunk
+local Trunk = {}
+
+---@return number
+function Trunk:id() end
+
+---@return number
+function Trunk:mapId() end
+
+---@return number
+function Trunk:cellId() end
+
+---@return number
+function Trunk:houseId() end
+
+---@return number
+function Trunk:ownerId() end
+
+---@return string
+function Trunk:key() end
+
+---@return number
+function Trunk:kamas() end
+
+---@param player Player
+function Trunk:enter(player) end
+
+---@param player Player
+function Trunk:lock(player) end
 
 -- Area
 ---@class Area

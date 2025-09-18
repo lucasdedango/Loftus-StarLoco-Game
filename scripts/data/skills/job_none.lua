@@ -10,6 +10,36 @@ local function houseDoorBroken(p)
     p:sendServerMessage("Cette maison est inaccessible pour le moment.")
 end
 
+local function trunkBroken(p)
+    p:sendServerMessage("Ce coffre est inaccessible pour le moment.")
+end
+
+local function trunkAt(p, cellId)
+    local map = p:map()
+    if not map then return nil end
+    return World:trunk(map:id(), cellId)
+end
+
+local function ensureTrunkHouse(p, trunk)
+    if not trunk then return nil end
+
+    local map = p:map()
+    if not map then return nil end
+    if trunk:mapId() ~= map:id() then return nil end
+
+    local house = p:inHouse()
+    if house and house:id() == trunk:houseId() then
+        return house
+    end
+
+    local trunkHouse = World:houseById(trunk:houseId())
+    if not trunkHouse then return nil end
+    if trunkHouse:houseMapId() ~= map:id() then return nil end
+
+    p:setInHouse(trunkHouse)
+    return trunkHouse
+end
+
 -- No skill object use
 SKILLS[0] = function(p, cellID)
     -- print("SKILL 0 USED", p:name(), cellID)
@@ -82,6 +112,44 @@ end
 
 SKILLS[98] = houseSell
 SKILLS[108] = houseSell
+
+local function useHouseTrunk(p, cellId)
+    local trunk = trunkAt(p, cellId)
+    if not trunk then
+        trunkBroken(p)
+        return
+    end
+
+    local house = ensureTrunkHouse(p, trunk)
+    if not house then
+        trunkBroken(p)
+        return
+    end
+
+    p:setInHouse(house)
+    trunk:enter(p)
+end
+
+local function lockHouseTrunk(p, cellId)
+    local trunk = trunkAt(p, cellId)
+    if not trunk then
+        trunkBroken(p)
+        return
+    end
+
+    local house = ensureTrunkHouse(p, trunk)
+    if not house then
+        trunkBroken(p)
+        return
+    end
+
+    p:setInHouse(house)
+    trunk:lock(p)
+end
+
+SKILLS[106] = useHouseTrunk
+SKILLS[104] = useHouseTrunk
+SKILLS[105] = lockHouseTrunk
 
 -- Save Zaap
 SKILLS[44] = function(p, _)

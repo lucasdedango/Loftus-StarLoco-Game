@@ -12,6 +12,7 @@ import org.starloco.locos.game.action.ExchangeAction;
 import org.starloco.locos.game.world.World;
 import org.starloco.locos.kernel.Constant;
 import org.starloco.locos.object.GameObject;
+import org.starloco.locos.script.proxy.STrunk;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,12 +31,14 @@ public class Trunk {
     private long kamas;
     private Player player = null;
     private Map<Integer, GameObject> object = new HashMap<>();
+    private final STrunk scriptVal;
 
     public Trunk(int id, int houseId, int mapId, int cellId) {
         this.id = id;
         this.houseId = houseId;
         this.mapId = mapId;
         this.cellId = cellId;
+        this.scriptVal = new STrunk(this);
     }
 
     public static void closeCode(Player P) {
@@ -172,6 +175,10 @@ public class Trunk {
         this.object = object;
     }
 
+    public STrunk scripted() {
+        return this.scriptVal;
+    }
+
     public void Lock(Player P) {
         P.setExchangeAction(new ExchangeAction<>(ExchangeAction.LOCK_TRUNK, this));
         SocketManager.GAME_SEND_KODE(P, "CK1|8");
@@ -183,8 +190,14 @@ public class Trunk {
 
         House house = World.world.getHouse(getHouseId());
 
-        if (house.getOwnerId() == player.getAccID() && this.getOwnerId() != player.getAccID())
+        if (house == null) {
+            return;
+        }
+
+        if (house.getOwnerId() == player.getAccID() && this.getOwnerId() != player.getAccID()) {
             this.setOwnerId(player.getAccID());
+            ((TrunkData) DatabaseManager.get(TrunkData.class)).update(player, house);
+        }
         if (this.getOwnerId() == player.getAccID() || (player.getGuild() != null && player.getGuild().getId() == house.getGuildId() && house.canDo(Constant.C_GNOCODE))) {
             player.setExchangeAction(new ExchangeAction<>(ExchangeAction.IN_TRUNK, this));
             open(player, "-", true);
@@ -194,6 +207,7 @@ public class Trunk {
         } else if (player.getGuild() == null && house.canDo(Constant.C_OCANTOPEN)) {
             SocketManager.GAME_SEND_MESSAGE(player, player.getLang().trans("area.map.entity.trunk.enter.guilde.only"));
         } else if (this.getOwnerId() > 0) {
+            player.setExchangeAction(new ExchangeAction<>(ExchangeAction.IN_TRUNK, this));
             SocketManager.GAME_SEND_KODE(player, "CK0|8");
         }
     }

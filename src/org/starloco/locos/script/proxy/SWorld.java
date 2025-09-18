@@ -12,6 +12,7 @@ import org.starloco.locos.area.map.GameMap;
 import org.starloco.locos.client.Account;
 import org.starloco.locos.client.Player;
 import org.starloco.locos.entity.map.House;
+import org.starloco.locos.entity.map.Trunk;
 import org.starloco.locos.game.world.World;
 import org.starloco.locos.script.DataScriptVM;
 import org.starloco.locos.script.types.MetaTables;
@@ -96,6 +97,25 @@ public class SWorld extends DefaultUserdata<World> {
 
         return Optional.ofNullable(world.getHouseManager().getHouseIdByCoord(mapId, cellId))
             .map(House::scripted)
+            .orElse(null);
+    }
+
+    @SuppressWarnings("unused")
+    private static SHouse houseById(World world, ArgumentIterator args) {
+        int id = args.nextInt();
+
+        return Optional.ofNullable(world.getHouse(id))
+            .map(House::scripted)
+            .orElse(null);
+    }
+
+    @SuppressWarnings("unused")
+    private static STrunk trunk(World world, ArgumentIterator args) {
+        int mapId = args.nextInt();
+        int cellId = args.nextInt();
+
+        return Trunk.getTrunkIdByCoord(mapId, cellId)
+            .map(Trunk::scripted)
             .orElse(null);
     }
 

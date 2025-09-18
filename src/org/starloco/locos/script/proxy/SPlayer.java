@@ -96,6 +96,11 @@ public class SPlayer extends DefaultUserdata<Player> {
     }
 
     @SuppressWarnings("unused")
+    private static void openZaapi(Player p) {
+        p.openZaapiMenu();
+    }
+
+    @SuppressWarnings("unused")
     private static void openTrunk(Player p, ArgumentIterator args) {
         int cellID = args.nextInt();
         p.openTrunk(cellID);

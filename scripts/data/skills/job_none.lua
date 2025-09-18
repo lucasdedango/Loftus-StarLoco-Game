@@ -106,6 +106,9 @@ registerGatherSkill(102,
 -- Use Zaap
 SKILLS[114] = function(p, _)        p:openZaap() end
 
+-- Use Zaapi
+SKILLS[157] = function(p, _)        p:openZaapi() end
+
 -- Use garbage bin
 SKILLS[153] = function(p, cellID)   p:openTrunk(cellID) end
 

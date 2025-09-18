@@ -145,6 +145,9 @@ function Player:savePosition(mapId, cellId, sendInfoMsg) end
 ---@return void
 function Player:openZaap() end
 
+---@return void
+function Player:openZaapi() end
+
 ---@param cellID number
 ---@return void
 function Player:openTrunk(cellID) end

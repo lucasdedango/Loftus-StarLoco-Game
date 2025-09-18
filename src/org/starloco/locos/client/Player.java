@@ -4251,6 +4251,61 @@ public class Player implements Scripted<SPlayer>, Actor {
         }
     }
 
+    public void openZaapiMenu() {
+        if (this.fight != null) {
+            return;
+        }
+        if (this.getDeshonor() >= 2) {
+            SocketManager.GAME_SEND_Im_PACKET(this, "183");
+            return;
+        }
+
+        GameMap map = this.curMap;
+        if (map == null || map.getSubArea() == null || map.getSubArea().getArea() == null) {
+            return;
+        }
+
+        boolean isNeutral = this.alignment == 0 || this.alignment == Constant.ALIGNEMENT_NEUTRE;
+        boolean isMercenary = this.alignment == Constant.ALIGNEMENT_MERCENAIRE;
+        int areaId = map.getSubArea().getArea().getId();
+        int price = 20;
+        String zaapiData;
+
+        if (areaId == 7 && (this.alignment == Constant.ALIGNEMENT_BONTARIEN || isNeutral || isMercenary)) {
+            zaapiData = Constant.ZAAPI.get(Constant.ALIGNEMENT_BONTARIEN);
+            if (this.alignment == Constant.ALIGNEMENT_BONTARIEN) {
+                price = 10;
+            }
+        } else if (areaId == 11 && (this.alignment == Constant.ALIGNEMENT_BRAKMARIEN || isNeutral || isMercenary)) {
+            zaapiData = Constant.ZAAPI.get(Constant.ALIGNEMENT_BRAKMARIEN);
+            if (this.alignment == Constant.ALIGNEMENT_BRAKMARIEN) {
+                price = 10;
+            }
+        } else {
+            zaapiData = Constant.ZAAPI.get(Constant.ALIGNEMENT_NEUTRE);
+        }
+
+        if (zaapiData == null || zaapiData.isEmpty()) {
+            return;
+        }
+
+        StringJoiner joiner = new StringJoiner("|");
+        for (String entry : zaapiData.split(",")) {
+            if (entry.isEmpty()) {
+                continue;
+            }
+            joiner.add(entry + ";" + price);
+        }
+
+        String list = joiner.toString();
+        if (list.isEmpty()) {
+            return;
+        }
+
+        this.setExchangeAction(new ExchangeAction<>(ExchangeAction.IN_ZAPPI, 0));
+        SocketManager.GAME_SEND_ZAAPI_PACKET(this, list);
+    }
+
     public void openTrunk(int cellID) {
         Trunk.getTrunkIdByCoord(curMap.getId(), cellID).ifPresent(trunk -> {
             if (trunk.getPlayer() != null) {

@@ -836,7 +836,7 @@ public class PathFinding {
                 int distance = PathFinding.getDistanceBetween(map, endCell, newCellId);
 
                 if (distance < dist && cell.isWalkable(true, true, -1) && cell.getFirstFighter() == null
-                        && !forbidden.contains(cell) && OrthogonalProj.isEdgeCell(map.data.width, map.data.height, newCellId) ) {
+                        && !forbidden.contains(cell)) {
                     dist = distance;
                     cellId = newCellId;
                 }

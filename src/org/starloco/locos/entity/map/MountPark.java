@@ -1,13 +1,19 @@
 package org.starloco.locos.entity.map;
 
+import org.starloco.locos.client.Player;
 import org.starloco.locos.common.Formulas;
+import org.starloco.locos.common.SocketManager;
 import org.starloco.locos.entity.mount.Mount;
+import org.starloco.locos.game.action.ExchangeAction;
 import org.starloco.locos.game.world.World;
 import org.starloco.locos.guild.Guild;
+import org.starloco.locos.guild.GuildMember;
+import org.starloco.locos.script.proxy.SMountPark;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class MountPark {
@@ -27,6 +33,7 @@ public class MountPark {
     private java.util.Map<Integer, java.util.Map<Integer, Integer>> breedingObject = new HashMap<>();
     private CopyOnWriteArrayList<Integer> raising = new CopyOnWriteArrayList<>();
     private ArrayList<Mount> etable = new ArrayList<>();
+    private final SMountPark scriptVal;
 
     public MountPark(int map, int cellid, int size, int priceBase, int placeOfSpawn, int door, String cellOfObject, int maxObject) {
         this.map = map;
@@ -36,6 +43,7 @@ public class MountPark {
         this.placeOfSpawn = placeOfSpawn;
         this.door = door;
         this.maxObject = maxObject;
+        this.scriptVal = new SMountPark(this);
 
         if(!cellOfObject.isEmpty()) {
             for(String cases : cellOfObject.split(";")) {
@@ -150,6 +158,10 @@ public class MountPark {
         return this.door;
     }
 
+    public SMountPark scripted() {
+        return this.scriptVal;
+    }
+
     public ArrayList<Integer> getCellOfObject() {
         return this.cellOfObject;
     }
@@ -184,6 +196,123 @@ public class MountPark {
         if(cell <= 0)
             return;
         this.cellOfObject.add(cell);
+    }
+
+    public void open(Player player) {
+        if(player == null) {
+            return;
+        }
+
+        checkBirths(player);
+
+        if(isBeingUsed(player)) {
+            player.send("Im120");
+            return;
+        }
+
+        player.openMountPark(this);
+    }
+
+    public void promptBuy(Player player) {
+        if(player == null) {
+            return;
+        }
+
+        if(getOwner() == -1) {
+            SocketManager.GAME_SEND_Im_PACKET(player, "196");
+            return;
+        }
+
+        if(getPrice() == 0) {
+            SocketManager.GAME_SEND_Im_PACKET(player, "197");
+            return;
+        }
+
+        if(player.getGuild() == null) {
+            SocketManager.GAME_SEND_Im_PACKET(player, "1135");
+            return;
+        }
+
+        GuildMember guildMember = player.getGuildMember();
+        if(guildMember == null || guildMember.getRank() != 1) {
+            SocketManager.GAME_SEND_Im_PACKET(player, "198");
+            return;
+        }
+
+        SocketManager.GAME_SEND_R_PACKET(player, "D" + getPrice() + "|" + getPrice());
+    }
+
+    public void promptSell(Player player) {
+        if(player == null) {
+            return;
+        }
+
+        if(getOwner() == -1) {
+            SocketManager.GAME_SEND_Im_PACKET(player, "194");
+            return;
+        }
+
+        if(getOwner() != player.getId()) {
+            SocketManager.GAME_SEND_Im_PACKET(player, "195");
+            return;
+        }
+
+        SocketManager.GAME_SEND_R_PACKET(player, "D" + getPrice() + "|" + getPrice());
+    }
+
+    public void checkBirths(Player player) {
+        if(player == null) {
+            return;
+        }
+
+        try {
+            for(Mount mount : getEtable()) {
+                if(mount == null) {
+                    continue;
+                }
+                mount.checkBaby(player, this);
+            }
+
+            for(Integer id : getListOfRaising()) {
+                Mount mount = World.world.getMountById(id);
+                if(mount == null) {
+                    continue;
+                }
+                mount.checkBaby(player, this);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean isBeingUsed(Player player) {
+        if(getGuild() == null) {
+            return false;
+        }
+
+        for(Player target : getGuild().getPlayers()) {
+            if(target == null) {
+                continue;
+            }
+
+            if(target.getExchangeAction() == null) {
+                continue;
+            }
+
+            if(target.getExchangeAction().getType() != ExchangeAction.IN_MOUNTPARK) {
+                continue;
+            }
+
+            if(target.getCurMap() == null || player.getCurMap() == null) {
+                continue;
+            }
+
+            if(Objects.equals(target.getCurMap().getId(), player.getCurMap().getId())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void parseBreedObjects(String objects) {

@@ -155,6 +155,9 @@ function Player:openTrunk(cellID) end
 ---@return boolean
 function Player:openGuildCreation() end
 
+---@param mountPark MountPark|nil
+function Player:openMountPark(mountPark) end
+
 ---@param typeID number
 ---@return boolean worked
 function Player:setExchangeAction(typeID) end
@@ -494,6 +497,9 @@ function Map:isCellWalkable(cellId, checkObject, inFight, targetCell) end
 ---@param val string
 function Map:sendAction(p, id, type, val) end
 
+---@return MountPark|nil
+function Map:mountPark() end
+
 ---@class House
 local House = {}
 
@@ -562,6 +568,42 @@ function Trunk:enter(player) end
 
 ---@param player Player
 function Trunk:lock(player) end
+
+---@class MountPark
+local MountPark = {}
+
+---@return number
+function MountPark:mapId() end
+
+---@return number
+function MountPark:cellId() end
+
+---@return number
+function MountPark:doorCellId() end
+
+---@return number
+function MountPark:ownerId() end
+
+---@return number
+function MountPark:guildId() end
+
+---@return number
+function MountPark:price() end
+
+---@return number
+function MountPark:size() end
+
+---@return number
+function MountPark:maxObject() end
+
+---@param player Player
+function MountPark:open(player) end
+
+---@param player Player
+function MountPark:promptBuy(player) end
+
+---@param player Player
+function MountPark:promptSell(player) end
 
 -- Area
 ---@class Area

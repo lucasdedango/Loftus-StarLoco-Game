@@ -10,6 +10,7 @@ import org.starloco.locos.area.map.GameMap;
 import org.starloco.locos.client.Player;
 import org.starloco.locos.common.SocketManager;
 import org.starloco.locos.entity.map.House;
+import org.starloco.locos.entity.map.MountPark;
 import org.starloco.locos.entity.monster.MobGroupDef;
 import org.starloco.locos.entity.monster.MonsterGroup;
 import org.starloco.locos.fight.spells.Spell;
@@ -124,6 +125,21 @@ public class SPlayer extends DefaultUserdata<Player> {
 
         SocketManager.GAME_SEND_gn_PACKET(p);
         return true;
+    }
+
+    @SuppressWarnings("unused")
+    private static void openMountPark(Player p, ArgumentIterator args) {
+        Object value = args.nextOptionalAny(null);
+        MountPark park = null;
+
+        if(value != null) {
+            if(!(value instanceof SMountPark)) {
+                throw new IllegalArgumentException("Player:openMountPark expects a MountPark userdata or nil");
+            }
+            park = ((SMountPark) value).getUserValue();
+        }
+
+        p.openMountPark(park);
     }
 
     @SuppressWarnings("unused")

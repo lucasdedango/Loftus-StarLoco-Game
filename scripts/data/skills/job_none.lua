@@ -6,6 +6,12 @@ local function houseAt(p, cellId)
     return World:house(map:id(), cellId)
 end
 
+local function mountPark(p)
+    local map = p:map()
+    if not map then return nil end
+    return map:mountPark()
+end
+
 local function houseDoorBroken(p)
     p:sendServerMessage("Cette maison est inaccessible pour le moment.")
 end
@@ -150,6 +156,33 @@ end
 SKILLS[106] = useHouseTrunk
 SKILLS[104] = useHouseTrunk
 SKILLS[105] = lockHouseTrunk
+
+-- Access mount park
+SKILLS[175] = function(p, _)
+    local park = mountPark(p)
+    if not park then return end
+
+    park:open(p)
+end
+
+-- Show mount park buy panel
+SKILLS[176] = function(p, _)
+    local park = mountPark(p)
+    if not park then return end
+
+    park:promptBuy(p)
+end
+
+-- Sell or update price
+local function mountParkSell(p)
+    local park = mountPark(p)
+    if not park then return end
+
+    park:promptSell(p)
+end
+
+SKILLS[177] = mountParkSell
+SKILLS[178] = mountParkSell
 
 -- Save Zaap
 SKILLS[44] = function(p, _)

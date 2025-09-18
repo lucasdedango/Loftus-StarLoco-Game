@@ -10,6 +10,7 @@ import org.starloco.locos.area.map.GameMap;
 import org.starloco.locos.area.map.ScriptMapData;
 import org.starloco.locos.client.Player;
 import org.starloco.locos.common.SocketManager;
+import org.starloco.locos.entity.map.MountPark;
 import org.starloco.locos.entity.monster.MobGroupDef;
 import org.starloco.locos.entity.monster.MonsterGrade;
 import org.starloco.locos.entity.monster.MonsterGroup;
@@ -71,6 +72,11 @@ public class SMap extends DefaultUserdata<GameMap> {
             .map(s -> s.map(MonsterGrade::scripted))
             .map(ScriptVM::listOf)
         );
+    }
+
+    @SuppressWarnings("unused")
+    private static SMountPark mountPark(GameMap m) {
+        return Optional.ofNullable(m.getMountPark()).map(MountPark::scripted).orElse(null);
     }
 
     @SuppressWarnings("unused")

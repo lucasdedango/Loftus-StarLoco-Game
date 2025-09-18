@@ -38,6 +38,7 @@ import org.starloco.locos.game.action.type.DocumentActionData;
 import org.starloco.locos.game.action.type.NpcDialogActionData;
 import org.starloco.locos.game.action.type.ScenarioActionData;
 import org.starloco.locos.game.world.World;
+import org.starloco.locos.game.world.TilemanDefaults;
 import org.starloco.locos.guild.GuildMember;
 import org.starloco.locos.job.Job;
 import org.starloco.locos.job.JobAction;
@@ -6165,7 +6166,7 @@ public class Player implements Scripted<SPlayer>, Actor {
     }
 
     public boolean hasUnlocked(int mapId) {
-        return unlockedMaps.contains(mapId);
+        return unlockedMaps.contains(mapId) || TilemanDefaults.isDefaultUnlockedMap(mapId);
     }
 
     public boolean unlockMap(int mapId) {

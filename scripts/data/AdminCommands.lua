@@ -5,6 +5,7 @@ RegisterAdminCommand("INFOS", "", "Permet d'obtenir des informations sur le serv
 RegisterAdminCommand("STARTFIGHT", "", "Permet de commencer le combat lorsque celui-ci est en sélection.")
 RegisterAdminCommand("GON", "[Pseudo]", "Permet de se téléporter à un joueur.")
 RegisterAdminCommand("TP", "[mapId] [cellId]", "Permet de se téléporter à un endroit précis.")
+RegisterAdminCommand("TILEMANDEFAULTADD", "[mapId]", "Add mapId to tileman defaults.")
 RegisterAdminCommand("KICKFIGHT", "[Pseudo]", "Expulse le joueur du combat.")
 RegisterAdminCommand("DEBUG", "[Pseudo]", "Téléporte le joueur à son point de sauvegarde.")
 RegisterAdminCommand("WHO", "", "Permet d'avoir la liste de 30 connectés maximum.")

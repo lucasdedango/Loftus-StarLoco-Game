@@ -32,6 +32,7 @@ import org.starloco.locos.game.GameClient;
 import org.starloco.locos.game.GameServer;
 import org.starloco.locos.game.action.ExchangeAction;
 import org.starloco.locos.game.scheduler.entity.WorldSave;
+import org.starloco.locos.game.world.TilemanDefaults;
 import org.starloco.locos.game.world.World;
 import org.starloco.locos.job.JobAction;
 import org.starloco.locos.job.JobStat;
@@ -423,6 +424,37 @@ public class CommandAdmin extends AdminUser {
             perso.teleport(mapID, cellID);
             String str = "Le joueur " + perso.getName() + " a ete teleporte.";
             this.sendMessage(str);
+            return;
+        } else if (command.equalsIgnoreCase("TILEMANDEFAULTADD")) {
+            if (infos.length < 2) {
+                this.sendMessage("Usage: TILEMANDEFAULTADD [mapId]");
+                return;
+            }
+
+            int mapId;
+            try {
+                mapId = Integer.parseInt(infos[1]);
+            } catch (NumberFormatException e) {
+                this.sendMessage("MapID invalide.");
+                return;
+            }
+
+            if (World.world.getMap(mapId) == null) {
+                this.sendMessage("La map " + mapId + " n'existe pas.");
+                return;
+            }
+
+            if (TilemanDefaults.isDefaultUnlockedMap(mapId)) {
+                this.sendMessage("La map " + mapId + " est déjà présente dans les defaults Tileman.");
+                return;
+            }
+
+            TilemanDefaultMapData dao = (TilemanDefaultMapData) DatabaseManager.get(TilemanDefaultMapData.class);
+            if (dao != null && dao.insert(mapId)) {
+                this.sendMessage("La map " + mapId + " a été ajoutée aux defaults Tileman.");
+            } else {
+                this.sendMessage("Impossible d'ajouter la map " + mapId + ".");
+            }
             return;
         } else if (command.equalsIgnoreCase("SIZE")) {
             int size = -1;

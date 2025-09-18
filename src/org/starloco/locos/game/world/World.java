@@ -366,6 +366,9 @@ public class World implements Scripted<SWorld> {
         DatabaseManager.get(DropData.class).loadFully();
         logger.debug("The drops were loaded successfully.");
 
+        DatabaseManager.get(TilemanDefaultMapData.class).loadFully();
+        logger.debug("The default tileman maps were loaded successfully.");
+
         logger.debug("The mounts were loaded successfully.");
 
         DatabaseManager.get(GuildMemberData.class).loadFully();

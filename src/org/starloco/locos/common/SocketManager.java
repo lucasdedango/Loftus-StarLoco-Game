@@ -121,6 +121,13 @@ public class SocketManager {
         send(perso, packet);
     }
 
+    public static void GAME_SEND_STATS_PACKET_ONE_WINDOWS(Player target, Player receiver) {
+        if (target == null || receiver == null) {
+            return;
+        }
+        send(receiver, target.getAsPacket());
+    }
+
     public static void GAME_SEND_Rx_PACKET(Player out) {
         String packet = "Rx" + out.getMountXpGive();
         send(out, packet);
@@ -167,6 +174,13 @@ public class SocketManager {
             e.printStackTrace();
             System.out.println("Error occured : " + e.getMessage());
         }
+    }
+
+    public static void GAME_SEND_ASK_WINDOW(GameClient out, Player perso) {
+        if (out == null || perso == null) {
+            return;
+        }
+        GAME_SEND_ASK(out, perso);
     }
 
     public static void GAME_SEND_ALIGNEMENT(GameClient out, int alliID) {
@@ -864,6 +878,13 @@ public class SocketManager {
     public static void GAME_SEND_SPELL_LIST(Player perso) {
         String packet = "SL" + perso.encodeSpellListForSL();
         send(perso, packet);
+    }
+
+    public static void GAME_SEND_SPELL_LIST_ONE_WINDOWS(Player target, Player receiver) {
+        if (target == null || receiver == null) {
+            return;
+        }
+        send(receiver, "SL" + target.encodeSpellListForSL());
     }
 
     public static void GAME_SEND_FIGHT_PLAYER_DIE_TO_FIGHT(Fight fight, int teams, int guid) {

@@ -3895,6 +3895,11 @@ public class GameClient {
                 readyFight(packet);
                 break;
             case 't':
+                Player controlled = getOneWindowControlledPlayer();
+                if (controlled != null && controlled.getFight() != null) {
+                    controlled.getFight().playerPass(controlled);
+                    break;
+                }
                 if (this.player.getFight() != null)
                     this.player.getFight().playerPass(this.player);
                 break;
@@ -3904,6 +3909,36 @@ public class GameClient {
                 }
                 break;
         }
+    }
+
+    private Player getOneWindowControlledPlayer() {
+        if (this.player == null) {
+            return null;
+        }
+        Party party = this.player.getParty();
+        if (party == null) {
+            return null;
+        }
+        Player master = party.getMaster();
+        if (master == null || !master.isOne_windows()) {
+            return null;
+        }
+        if (master.getId() != this.player.getId()) {
+            return null;
+        }
+        Player target = party.getOneWindowTarget();
+        if (target == null) {
+            return null;
+        }
+        Fight masterFight = this.player.getFight();
+        Fight targetFight = target.getFight();
+        if (masterFight == null || targetFight == null) {
+            return null;
+        }
+        if (masterFight.getId() != targetFight.getId()) {
+            return null;
+        }
+        return target;
     }
 
     private synchronized void parseAction(String packet) {
@@ -4148,6 +4183,18 @@ public class GameClient {
             this.player.setSitted(false);
             this.player.setAway(true);
         } else {
+            Player controlled = getOneWindowControlledPlayer();
+            if (controlled != null) {
+                Fight fight = controlled.getFight();
+                if (fight != null) {
+                    Fighter fighter = fight.getFighterByPerso(controlled);
+                    if (fighter != null) {
+                        GA.args = path;
+                        fight.cast(fighter, () -> fight.onFighterMovement(fighter, GA), null);
+                    }
+                }
+                return;
+            }
             final Fighter fighter = this.player.getFight().getFighterByPerso(this.player);
             if (fighter != null) {
                 GA.args = path;
@@ -4166,6 +4213,19 @@ public class GameClient {
             final int id = Integer.parseInt(split[0].substring(5)), cellId = Integer.parseInt(split[1]);
             final Fight fight = this.player.getFight();
 
+            Player controlled = getOneWindowControlledPlayer();
+            if (controlled != null) {
+                Fight targetFight = controlled.getFight();
+                if (targetFight != null) {
+                    Spell.SortStats controlledSpell = controlled.getSortStatBySortIfHas(id);
+                    if (controlledSpell != null && targetFight.getCurAction().isEmpty()) {
+                        Fighter controlledFighter = targetFight.getFighterByPerso(controlled);
+                        targetFight.cast(controlledFighter, () -> targetFight.tryCastSpell(controlledFighter, controlledSpell, cellId), controlledSpell);
+                        return;
+                    }
+                }
+            }
+
             if (fight != null) {
                 Spell.SortStats SS = this.player.getSortStatBySortIfHas(id);
 
@@ -4182,6 +4242,15 @@ public class GameClient {
         try {
             if(packet.contains("undefined")) return;
             final int cell = Integer.parseInt(packet.substring(5));
+            Player controlled = getOneWindowControlledPlayer();
+            if (controlled != null) {
+                Fight fight = controlled.getFight();
+                if (fight != null && fight.getCurAction().isEmpty()) {
+                    Fighter fighter = fight.getFighterByPerso(controlled);
+                    fight.cast(fighter, () -> fight.tryCaC(controlled, cell), null);
+                    return;
+                }
+            }
             if (this.player.getFight() != null && this.player.getFight().getCurAction().isEmpty())
                 this.player.getFight().cast(this.player.getFight().getFighterByPerso(this.player), () -> this.player.getFight().tryCaC(this.player, cell), null);
         } catch (Exception e) {

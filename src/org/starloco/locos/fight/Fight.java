@@ -1818,6 +1818,33 @@ public class Fight {
             return;
         }
 
+        Player currentPlayer = current.getPlayer();
+        if (currentPlayer != null) {
+            Party party = currentPlayer.getParty();
+            if (party != null) {
+                Player master = party.getMaster();
+                if (master != null && master.isOne_windows()) {
+                    if (master.getId() != currentPlayer.getId()) {
+                        party.setOneWindowTarget(currentPlayer);
+                        SocketManager.GAME_SEND_ASK_WINDOW(master.getGameClient(), currentPlayer);
+                        SocketManager.send(master, "kI" + currentPlayer.getId());
+                        SocketManager.GAME_SEND_STATS_PACKET_ONE_WINDOWS(currentPlayer, master);
+                        SocketManager.GAME_SEND_SPELL_LIST_ONE_WINDOWS(currentPlayer, master);
+                        sendOneWindowActionBar(master, current);
+                    } else {
+                        party.setOneWindowTarget(null);
+                        SocketManager.GAME_SEND_ASK_WINDOW(master.getGameClient(), master);
+                        SocketManager.send(master, "kI" + master.getId());
+                        SocketManager.GAME_SEND_STATS_PACKET_ONE_WINDOWS(master, master);
+                        SocketManager.GAME_SEND_SPELL_LIST_ONE_WINDOWS(master, master);
+                        sendOneWindowActionBar(master, current);
+                    }
+                } else {
+                    party.setOneWindowTarget(null);
+                }
+            }
+        }
+
         current.applyBeginningTurnBuff(this);
 
         if (current.isDead() && current.isInvocation()) {
@@ -4119,6 +4146,16 @@ public class Fight {
 
         player.afterFight = true;
 
+        if (player.isOne_windows()) {
+            if (player.getParty() != null) {
+                player.getParty().setOneWindowTarget(null);
+            }
+            SocketManager.GAME_SEND_ASK_WINDOW(player.getGameClient(), player);
+            SocketManager.GAME_SEND_STATS_PACKET_ONE_WINDOWS(player, player);
+            SocketManager.GAME_SEND_SPELL_LIST_ONE_WINDOWS(player, player);
+            SocketManager.send(player, "kI" + player.getId());
+        }
+
         GameObject weapon = player.getObjetByPos(Constant.ITEM_POS_ARME);
         if (weapon != null) {
             if (weapon.getTxtStat().containsKey(Constant.STATS_RESIST)) {
@@ -4184,6 +4221,16 @@ public class Fight {
             return;
         if (player.getMorphMode() && player.donjon)
             player.unsetFullMorph();
+
+        if (player.isOne_windows()) {
+            if (player.getParty() != null) {
+                player.getParty().setOneWindowTarget(null);
+            }
+            SocketManager.GAME_SEND_ASK_WINDOW(player.getGameClient(), player);
+            SocketManager.GAME_SEND_STATS_PACKET_ONE_WINDOWS(player, player);
+            SocketManager.GAME_SEND_SPELL_LIST_ONE_WINDOWS(player, player);
+            SocketManager.send(player, "kI" + player.getId());
+        }
 
         GameObject arme = player.getObjetByPos(Constant.ITEM_POS_ARME);
 
@@ -5747,6 +5794,25 @@ public class Fight {
                 e.printStackTrace();
             }
             SocketManager.GAME_SEND_GAF_PACKET_TO_FIGHT(this, 7, 0, fighter.getId());
+        }
+    }
+
+    private void sendOneWindowActionBar(Player receiver, Fighter fighter) {
+        if (receiver == null || fighter == null || fighter.getCell() == null) {
+            return;
+        }
+        Player fighterPlayer = fighter.getPlayer();
+        if (fighterPlayer == null) {
+            return;
+        }
+        int fighterId = fighter.getId();
+        int cellId = fighter.getCell().getId();
+
+        for (SortStats spell : fighterPlayer.getSpells()) {
+            SocketManager.send(receiver, "kM" + fighterId + "," + spell.getSpellID() + "," + cellId + ",0");
+        }
+        for (LaunchedSpell launched : fighter.getLaunchedSorts()) {
+            SocketManager.send(receiver, "kM" + fighterId + "," + launched.getSpellId() + "," + cellId + "," + launched.getCooldown());
         }
     }
 

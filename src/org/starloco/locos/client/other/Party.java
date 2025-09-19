@@ -11,6 +11,7 @@ import java.util.List;
 public class Party {
 
     private Player chief, master;
+    private Player oneWindowTarget;
     private final ArrayList<Player> players = new ArrayList<>();
     private final ArrayList<MasterOption> options = new ArrayList<>();
     private boolean followSameMap;
@@ -38,9 +39,22 @@ public class Party {
 
     public void setMaster(Player master) {
         this.master = master;
+        this.oneWindowTarget = null;
         if (master == null) {
             this.followSameMap = false;
         }
+    }
+
+    public Player getOneWindowTarget() {
+        return this.oneWindowTarget;
+    }
+
+    public void setOneWindowTarget(Player target) {
+        if (target != null && !this.players.contains(target)) {
+            this.oneWindowTarget = null;
+            return;
+        }
+        this.oneWindowTarget = target;
     }
 
     public ArrayList<Player> getPlayers() {
@@ -66,6 +80,12 @@ public class Party {
         player.follow = null;
         player.follower.clear();
         player.setParty(null);
+        if (this.oneWindowTarget != null && this.oneWindowTarget.getId() == player.getId()) {
+            this.oneWindowTarget = null;
+        }
+        if (this.master != null && this.master.getId() == player.getId()) {
+            setMaster(null);
+        }
         this.players.removeIf(player1 ->  player1.getId() == player.getId());
 
         for(Player member : this.players) {
@@ -122,6 +142,9 @@ public class Party {
     }
 
     public boolean isWithTheMaster(Player follower, boolean inFight, boolean changeMap) {
+        if (this.master == null || follower == null) {
+            return false;
+        }
         boolean sameMap = changeMap || (this.master.getCurMap() == follower.getCurMap() && this.master.getCurMap().getId() == follower.getCurMap().getId());
 
         return sameMap && !follower.getName().equals(this.master.getName()) &&  this.players.contains(follower) && follower.getGameClient() != null &&

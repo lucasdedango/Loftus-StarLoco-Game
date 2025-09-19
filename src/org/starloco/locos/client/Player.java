@@ -104,6 +104,7 @@ public class Player implements Scripted<SPlayer>, Actor {
     public ArrayList<Integer> thisCases = new ArrayList<>();
     public boolean mpToTp = false;
     public boolean noall = false;
+    private boolean oneWindow;
     private int id;
     private String name;
     private int sexe;
@@ -982,6 +983,17 @@ public class Player implements Scripted<SPlayer>, Actor {
 
     public List<Spell.SortStats> getSpells() {
         return new ArrayList<>(_sorts.values());
+    }
+
+    public boolean isOne_windows() {
+        return this.oneWindow;
+    }
+
+    public void setOne_windows(boolean oneWindow) {
+        this.oneWindow = oneWindow;
+        if (!oneWindow && this.party != null) {
+            this.party.setOneWindowTarget(null);
+        }
     }
 
     public boolean isSpec() {

@@ -13,6 +13,7 @@ public class Party {
     private Player chief, master;
     private final ArrayList<Player> players = new ArrayList<>();
     private final ArrayList<MasterOption> options = new ArrayList<>();
+    private boolean followSameMap;
 
     public Party(Player p1, Player p2) {
         this.chief = p1;
@@ -37,10 +38,22 @@ public class Party {
 
     public void setMaster(Player master) {
         this.master = master;
+        if (master == null) {
+            this.followSameMap = false;
+        }
     }
 
     public ArrayList<Player> getPlayers() {
         return this.players;
+    }
+
+    public boolean isFollowSameMapEnabled() {
+        return followSameMap;
+    }
+
+    public boolean toggleFollowSameMap() {
+        this.followSameMap = !this.followSameMap;
+        return this.followSameMap;
     }
 
     public void addPlayer(Player player) {

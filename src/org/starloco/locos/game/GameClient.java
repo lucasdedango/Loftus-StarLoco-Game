@@ -3928,35 +3928,7 @@ public class GameClient {
 
         switch (actionID) {
             case 1://Deplacement
-                final Party party = this.player.getParty();
-
-                GameMap oldMap = this.player.getCurMap();
-                GameCase oldCase = this.player.getCurCell();
                 this.gameParseDeplacementPacket(GA);
-                GameMap newMap = this.player.getCurMap();
-                GameCase newCase = this.player.getCurCell();
-
-                if(party != null && this.player.getFight() == null && party.getMaster() != null && party.getMaster().getName().equals(this.player.getName())) {
-                    StringBuilder gm = new StringBuilder("GM");
-
-                    TimerWaiter.addNext(() -> {
-                        party.getPlayers().stream()
-                            .filter((follower1) -> party.isWithTheMaster(follower1, false, oldMap != newMap))
-                            .forEach(follower -> {
-                                    GameClient client = follower.getGameClient();
-                                    if (client != null && newMap.getId() == follower.getCurMap().getId()) {
-                                        follower.getCurCell().removePlayer(follower);
-                                        follower.setCurCell(newMap.getCase(newCase.getId()));
-                                        follower.getCurCell().addPlayer(follower);
-                                        gm.append("|-").append(follower.getId()).append("|+").append(follower.parseToGM());
-                                    } else if (oldMap.getId() == follower.getCurMap().getId() && oldMap.getId() != newMap.getId() && oldCase.getId() == follower.getCurCell().getId()) {
-                                        follower.teleport(newMap.getId(), newCase.getId());
-                                    }
-                            });
-                        oldMap.send(gm.toString());
-                    }, 0, TimeUnit.MILLISECONDS);
-                }
-
                 break;
 
             case 34://Get quest on sign.
@@ -4678,6 +4650,7 @@ public class GameClient {
                         if (!this.player.isGhost())
                             this.player.setAway(false);
                         this.player.getCurMap().onPlayerArriveOnCell(this.player, this.player.getCurCell().getId());
+                        synchronizeFollowersAfterMasterMove(GA);
 
 
                         if (GA.tp) {
@@ -4733,6 +4706,36 @@ public class GameClient {
 
         }
         removeAction(GA);
+    }
+
+    private void synchronizeFollowersAfterMasterMove(GameAction GA) {
+        if (GA == null || this.player == null || this.player.getFight() != null)
+            return;
+
+        final Party party = this.player.getParty();
+
+        if (party == null)
+            return;
+
+        final Player master = party.getMaster();
+
+        if (master == null || master.getId() != this.player.getId())
+            return;
+
+        final GameMap currentMap = this.player.getCurMap();
+        final GameCase currentCase = this.player.getCurCell();
+
+        if (currentMap == null || currentCase == null)
+            return;
+
+        if (party.isFollowSameMapEnabled()) {
+            party.moveAllPlayersToMaster(currentCase, false);
+        }
+
+        party.getPlayers().stream()
+                .filter(follower -> party.isWithTheMaster(follower, false, true))
+                .filter(follower -> follower.getCurMap() == null || follower.getCurMap().getId() != currentMap.getId())
+                .forEach(follower -> follower.teleport(currentMap.getId(), currentCase.getId()));
     }
 
     private void setPlayerPosition(String packet) {

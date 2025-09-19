@@ -3895,8 +3895,10 @@ public class GameClient {
                 readyFight(packet);
                 break;
             case 't':
-                if (this.player.getFight() != null)
-                    this.player.getFight().playerPass(this.player);
+                if (this.player.getFight() != null) {
+                    Player target = getOneWindowControlledPlayer();
+                    this.player.getFight().playerPass(target != null ? target : this.player);
+                }
                 break;
             default:
                 if(c == 1030) {
@@ -3904,6 +3906,24 @@ public class GameClient {
                 }
                 break;
         }
+    }
+
+    private Player getOneWindowControlledPlayer() {
+        if (this.player == null || !this.player.isOne_windows())
+            return null;
+
+        Party party = this.player.getParty();
+        if (party == null || party.getMaster() != this.player)
+            return null;
+
+        Player target = party.getOne_windows();
+        if (target == null || target == this.player)
+            return null;
+
+        if (target.getFight() == null || target.getFight() != this.player.getFight())
+            return null;
+
+        return target;
     }
 
     private synchronized void parseAction(String packet) {
@@ -4148,10 +4168,12 @@ public class GameClient {
             this.player.setSitted(false);
             this.player.setAway(true);
         } else {
-            final Fighter fighter = this.player.getFight().getFighterByPerso(this.player);
+            Player controller = getOneWindowControlledPlayer();
+            Player actor = controller != null ? controller : this.player;
+            final Fighter fighter = this.player.getFight().getFighterByPerso(actor);
             if (fighter != null) {
                 GA.args = path;
-                this.player.getFight().cast(this.player.getFight().getFighterByPerso(this.player), () -> this.player.getFight().onFighterMovement(fighter, GA), null);
+                this.player.getFight().cast(fighter, () -> this.player.getFight().onFighterMovement(fighter, GA), null);
             }
         }
     }
@@ -4167,11 +4189,15 @@ public class GameClient {
             final Fight fight = this.player.getFight();
 
             if (fight != null) {
-                Spell.SortStats SS = this.player.getSortStatBySortIfHas(id);
+                Player controller = getOneWindowControlledPlayer();
+                Player actor = controller != null ? controller : this.player;
+                Spell.SortStats SS = actor.getSortStatBySortIfHas(id);
 
-                if (SS != null)
-                    if(this.player.getFight().getCurAction().isEmpty())
-                        this.player.getFight().cast(this.player.getFight().getFighterByPerso(this.player), () -> this.player.getFight().tryCastSpell(this.player.getFight().getFighterByPerso(this.player), SS, cellId), SS);
+                if (SS != null && fight.getCurAction().isEmpty()) {
+                    Fighter fighter = fight.getFighterByPerso(actor);
+                    if (fighter != null)
+                        fight.cast(fighter, () -> fight.tryCastSpell(fighter, SS, cellId), SS);
+                }
             }
         } catch (NumberFormatException e) {
             System.err.println(packet + "\n" + e);
@@ -4182,8 +4208,14 @@ public class GameClient {
         try {
             if(packet.contains("undefined")) return;
             final int cell = Integer.parseInt(packet.substring(5));
-            if (this.player.getFight() != null && this.player.getFight().getCurAction().isEmpty())
-                this.player.getFight().cast(this.player.getFight().getFighterByPerso(this.player), () -> this.player.getFight().tryCaC(this.player, cell), null);
+            Fight fight = this.player.getFight();
+            if (fight != null && fight.getCurAction().isEmpty()) {
+                Player controller = getOneWindowControlledPlayer();
+                Player actor = controller != null ? controller : this.player;
+                Fighter fighter = fight.getFighterByPerso(actor);
+                if (fighter != null)
+                    fight.cast(fighter, () -> fight.tryCaC(actor, cell), null);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

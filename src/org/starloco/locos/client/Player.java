@@ -29,6 +29,7 @@ import org.starloco.locos.event.EventManager;
 import org.starloco.locos.fight.Fight;
 import org.starloco.locos.fight.Fighter;
 import org.starloco.locos.fight.spells.Spell;
+import org.starloco.locos.fight.spells.Spell.SortStats;
 import org.starloco.locos.fight.spells.SpellEffect;
 import org.starloco.locos.game.GameClient;
 import org.starloco.locos.game.GameServer;
@@ -268,6 +269,7 @@ public class Player implements Scripted<SPlayer>, Actor {
     private int oldCell = 0;
     private String _allTitle = "";
     private boolean isBlocked = false;
+    private boolean oneWindow = false;
     //Regen hp
     private boolean sitted;
     private int regenRate = 2000;
@@ -5818,6 +5820,18 @@ public class Player implements Scripted<SPlayer>, Actor {
 
     public void setBlockMovement(boolean b) {
         this.isBlocked = b;
+    }
+
+    public boolean isOne_windows() {
+        return oneWindow;
+    }
+
+    public void setOne_windows(boolean oneWindow) {
+        this.oneWindow = oneWindow;
+    }
+
+    public Map<Integer, SortStats> getSpellMap() {
+        return Collections.unmodifiableMap(_sorts);
     }
 
     public GameClient getGameClient() {

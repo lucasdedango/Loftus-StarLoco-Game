@@ -121,6 +121,19 @@ public class SocketManager {
         send(perso, packet);
     }
 
+    public static void GAME_SEND_STATS_PACKET_ONE_WINDOWS(Player target, Player receiver) {
+        if (target == null || receiver == null)
+            return;
+        send(receiver, target.getAsPacket());
+        send(receiver, "Ow" + target.getPodUsed() + "|" + target.getMaxPod());
+    }
+
+    public static void GAME_SEND_ASK_WINDOW(GameClient client, Player target) {
+        if (client == null || target == null)
+            return;
+        send(client, "kW" + target.getId());
+    }
+
     public static void GAME_SEND_Rx_PACKET(Player out) {
         String packet = "Rx" + out.getMountXpGive();
         send(out, packet);
@@ -864,6 +877,12 @@ public class SocketManager {
     public static void GAME_SEND_SPELL_LIST(Player perso) {
         String packet = "SL" + perso.encodeSpellListForSL();
         send(perso, packet);
+    }
+
+    public static void GAME_SEND_SPELL_LIST_ONE_WINDOWS(Player target, Player receiver) {
+        if (target == null || receiver == null)
+            return;
+        send(receiver, "SL" + target.encodeSpellListForSL());
     }
 
     public static void GAME_SEND_FIGHT_PLAYER_DIE_TO_FIGHT(Fight fight, int teams, int guid) {

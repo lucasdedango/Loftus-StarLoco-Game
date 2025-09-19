@@ -11,6 +11,7 @@ import java.util.List;
 public class Party {
 
     private Player chief, master;
+    private Player oneWindowTarget;
     private final ArrayList<Player> players = new ArrayList<>();
     private final ArrayList<MasterOption> options = new ArrayList<>();
     private boolean followSameMap;
@@ -40,7 +41,16 @@ public class Party {
         this.master = master;
         if (master == null) {
             this.followSameMap = false;
+            this.oneWindowTarget = null;
         }
+    }
+
+    public Player getOne_windows() {
+        return oneWindowTarget;
+    }
+
+    public void setOne_windows(Player oneWindowTarget) {
+        this.oneWindowTarget = oneWindowTarget;
     }
 
     public ArrayList<Player> getPlayers() {
@@ -73,6 +83,10 @@ public class Party {
             member.follower.remove(player.getId());
         }
 
+        if(this.oneWindowTarget != null && this.oneWindowTarget.getId() == player.getId()) {
+            this.oneWindowTarget = null;
+        }
+
         if (this.players.size() == 1) {
             this.players.get(0).setParty(null);
             if (this.players.get(0).getAccount() == null || this.players.get(0).getGameClient() == null)
@@ -87,6 +101,24 @@ public class Party {
             }
             SocketManager.GAME_SEND_PM_DEL_PACKET_TO_GROUP(this, player.getId());
         }
+    }
+
+    public void disband() {
+        for(Player player : new ArrayList<>(this.players)) {
+            if(player == null) continue;
+            player.follow = null;
+            player.follower.clear();
+            player.setParty(null);
+            player.setOne_windows(false);
+            if(player.getGameClient() != null) {
+                SocketManager.GAME_SEND_PM_DEL_PACKET_TO_GROUP(this, player.getId());
+                SocketManager.GAME_SEND_PV_PACKET(player.getGameClient(), "");
+            }
+        }
+        this.players.clear();
+        this.options.clear();
+        this.master = null;
+        this.oneWindowTarget = null;
     }
 
     public void moveAllPlayersToMaster(final GameCase cell, boolean tp) {

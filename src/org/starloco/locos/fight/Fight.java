@@ -1818,6 +1818,48 @@ public class Fight {
             return;
         }
 
+        if (current.getPlayer() != null) {
+            Player actor = current.getPlayer();
+            Party party = actor.getParty();
+            Player master = party != null ? party.getMaster() : null;
+
+            if (master != null && master.isOne_windows()) {
+                if (master.getId() != actor.getId()) {
+                    party.setOne_windows(actor);
+                    SocketManager.GAME_SEND_ASK_WINDOW(master.getGameClient(), actor);
+                    master.send("kI" + actor.getId());
+                    SocketManager.GAME_SEND_STATS_PACKET_ONE_WINDOWS(actor, master);
+                    SocketManager.GAME_SEND_SPELL_LIST_ONE_WINDOWS(actor, master);
+
+                    for (Map.Entry<Integer, SortStats> entry : actor.getSpellMap().entrySet()) {
+                        SortStats stats = entry.getValue();
+                        if (stats == null) continue;
+                        master.send("kM" + current.getId() + "," + stats.getSpellID() + "," + current.getCell().getId() + ",0");
+                    }
+
+                    for (LaunchedSpell launched : current.getLaunchedSorts()) {
+                        master.send("kM" + current.getId() + "," + launched.getSpellId() + "," + current.getCell().getId() + "," + launched.getCooldown());
+                    }
+                } else {
+                    party.setOne_windows(null);
+                    SocketManager.GAME_SEND_ASK_WINDOW(master.getGameClient(), actor);
+                    actor.send("kI" + actor.getId());
+                    SocketManager.GAME_SEND_STATS_PACKET_ONE_WINDOWS(actor, actor);
+                    SocketManager.GAME_SEND_SPELL_LIST_ONE_WINDOWS(actor, actor);
+
+                    for (Map.Entry<Integer, SortStats> entry : actor.getSpellMap().entrySet()) {
+                        SortStats stats = entry.getValue();
+                        if (stats == null) continue;
+                        actor.send("kM" + current.getId() + "," + stats.getSpellID() + "," + current.getCell().getId() + ",0");
+                    }
+
+                    for (LaunchedSpell launched : current.getLaunchedSorts()) {
+                        actor.send("kM" + current.getId() + "," + launched.getSpellId() + "," + current.getCell().getId() + "," + launched.getCooldown());
+                    }
+                }
+            }
+        }
+
         current.applyBeginningTurnBuff(this);
 
         if (current.isDead() && current.isInvocation()) {
@@ -1950,6 +1992,14 @@ public class Fight {
             SocketManager.GAME_SEND_GAMETURNSTOP_PACKET_TO_FIGHT(this, 7, current.getId());
             current.setCanPlay(false);
             setCurAction("");
+
+            if (current.getPlayer() != null) {
+                Party party = current.getPlayer().getParty();
+                if (party != null && party.getMaster() != null && party.getMaster().isOne_windows()
+                        && party.getMaster().getId() != current.getPlayer().getId()) {
+                    party.setOne_windows(null);
+                }
+            }
 
             if (onAction) TimerWaiter.addNext(() -> this.newTurn(current), 2100);
             else this.newTurn(current);
@@ -4117,6 +4167,16 @@ public class Fight {
         if (player == null)
             return;
 
+        if (player.getParty() != null)
+            player.getParty().setOne_windows(null);
+
+        if (player.isOne_windows() && player.getGameClient() != null) {
+            SocketManager.GAME_SEND_ASK_WINDOW(player.getGameClient(), player);
+            SocketManager.GAME_SEND_STATS_PACKET_ONE_WINDOWS(player, player);
+            SocketManager.GAME_SEND_SPELL_LIST_ONE_WINDOWS(player, player);
+            player.send("kI" + player.getId());
+        }
+
         player.afterFight = true;
 
         GameObject weapon = player.getObjetByPos(Constant.ITEM_POS_ARME);
@@ -4184,6 +4244,16 @@ public class Fight {
             return;
         if (player.getMorphMode() && player.donjon)
             player.unsetFullMorph();
+
+        if (player.getParty() != null)
+            player.getParty().setOne_windows(null);
+
+        if (player.isOne_windows() && player.getGameClient() != null) {
+            SocketManager.GAME_SEND_ASK_WINDOW(player.getGameClient(), player);
+            SocketManager.GAME_SEND_STATS_PACKET_ONE_WINDOWS(player, player);
+            SocketManager.GAME_SEND_SPELL_LIST_ONE_WINDOWS(player, player);
+            player.send("kI" + player.getId());
+        }
 
         GameObject arme = player.getObjetByPos(Constant.ITEM_POS_ARME);
 

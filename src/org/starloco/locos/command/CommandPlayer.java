@@ -44,6 +44,8 @@ public class CommandPlayer {
                 return commandInfos(player, msg);
             }else if (command(msg, "master") || command(msg, "maitre") || command(msg, "maître") || command(msg, "maestro")) {
                 return commandMaster(player, msg);
+            } else if (command(msg, "followmap")) {
+                return commandFollowMap(player);
             } else if (command(msg, "pass")) {
                 return commandPass(player, msg);
             } else  if (command(msg, "interval")) {
@@ -183,7 +185,8 @@ public class CommandPlayer {
         String[] info = msg.split(" ");
         int map = player.getCurMap().getId();
         SocketManager.GAME_SEND_EV_PACKET(player.getGameClient());
-        player.sendTypeMessage("Bank", player.getLang().trans("command.commandplayer.transfer.waitting"));
+        player.sendTypeMessage(player.getLang().trans("command.commandplayer.transfer.bank.title"),
+                player.getLang().trans("command.commandplayer.transfer.waitting"));
         int count = 0;
 
         boolean bank = info.length >= 2 && info[1].equalsIgnoreCase("bank");
@@ -248,7 +251,8 @@ public class CommandPlayer {
             }
         }
 
-        player.sendTypeMessage("Bank", player.getLang().trans("command.commandplayer.transfer.good", count));
+        player.sendTypeMessage(player.getLang().trans("command.commandplayer.transfer.bank.title"),
+                player.getLang().trans("command.commandplayer.transfer.good", count));
         player.setExchangeAction(null);
         if(player.getCurMap().getId() == map)
             player.openBank();
@@ -293,7 +297,9 @@ public class CommandPlayer {
                     if(!player.addItem(object, true, false))
                         World.world.removeGameObject(object.getGuid());
                 }
-                player.sendTypeMessage("Transfert", objects.size()  + " objets récupérés.");
+                player.sendTypeMessage(player.getLang().trans("command.commandplayer.transfer.master.title"),
+                        player.getLang().trans("command.commandplayer.transfer.master.success",
+                                String.valueOf(objects.size())));
             }, 1000);
             return true;
         }
@@ -440,6 +446,25 @@ public class CommandPlayer {
         }
     }
 
+    private static boolean commandFollowMap(Player player) {
+        final Party party = player.getParty();
+
+        if (party == null || party.getMaster() == null) {
+            player.sendMessage(player.getLang().trans("command.commandplayer.followmap.nomaster"));
+            return true;
+        }
+
+        if (party.getMaster() != player) {
+            player.sendMessage(player.getLang().trans("command.commandplayer.followmap.notmaster", party.getMaster().getName()));
+            return true;
+        }
+
+        final boolean enabled = party.toggleFollowSameMap();
+        final String key = enabled ? "command.commandplayer.followmap.on" : "command.commandplayer.followmap.off";
+        player.sendMessage(player.getLang().trans(key));
+        return true;
+    }
+
     private static boolean commandHelp(Player player, String msg) {
         player.sendMessage(player.getLang().trans("command.commandplayer.default"));
         return true;
@@ -494,7 +519,7 @@ public class CommandPlayer {
         }
         String[] parts = msg.split(" ");
         if (parts.length < 2) {
-            player.sendMessage("Usage: .unlock up/down/left/right");
+            player.sendMessage(player.getLang().trans("command.commandplayer.unlock.usage.direction"));
             return true;
         }
 
@@ -514,65 +539,71 @@ public class CommandPlayer {
                 x++;
                 break;
             default:
-                player.sendMessage("Unknown direction.");
+                player.sendMessage(player.getLang().trans("command.commandplayer.unlock.direction.unknown"));
                 return true;
         }
 
         ArrayList<GameMap> maps = World.world.getMapByPosInArray(x, y);
         if (maps.isEmpty()) {
-            player.sendMessage("No map at " + x + "," + y);
+            player.sendMessage(player.getLang().trans("command.commandplayer.unlock.nomap",
+                    String.valueOf(x), String.valueOf(y)));
             return true;
         }
 
         int mapId = maps.get(0).getId();
 
         if (player.hasUnlocked(mapId)) {
-            player.sendMessage("Already unlocked map " + mapId);
+            player.sendMessage(player.getLang().trans("command.commandplayer.unlock.already",
+                    String.valueOf(mapId)));
             return true;
         }
 
         if (player.getTilemanCredits() < 1) {
-            player.sendMessage("Not enough tileman credits");
+            player.sendMessage(player.getLang().trans("command.commandplayer.unlock.notenough"));
             return true;
         }
 
         player.unlockMap(mapId);
         player.setTilemanCredits(player.getTilemanCredits() - 1);
         ((PlayerData) DatabaseManager.get(PlayerData.class)).update(player);
-        player.sendMessage("Unlocked map " + mapId + ". Credits left: " + player.getTilemanCredits());
+        player.sendMessage(player.getLang().trans("command.commandplayer.unlock.success",
+                String.valueOf(mapId), String.valueOf(player.getTilemanCredits())));
         return true;
     }
 
     private static boolean commandIdUnlock(Player player, String msg) {
         String[] parts = msg.split(" ");
         if (parts.length < 2) {
-            player.sendMessage("Usage: .unlockid mapId");
+            player.sendMessage(player.getLang().trans("command.commandplayer.unlockid.usage"));
             return true;
         }
         try {
             int mapId = Integer.parseInt(parts[1]);
             GameMap map = World.world.getMap(mapId);
             if (map == null) {
-                player.sendMessage("Unknown map " + mapId);
+                player.sendMessage(player.getLang().trans("command.commandplayer.unlock.unknown.map",
+                        String.valueOf(mapId)));
                 return true;
             }
 
             if (player.hasUnlocked(mapId)) {
-                player.sendMessage("Already unlocked map " + mapId);
+                player.sendMessage(player.getLang().trans("command.commandplayer.unlock.already",
+                        String.valueOf(mapId)));
                 return true;
             }
 
             if (player.getTilemanCredits() < 1) {
-                player.sendMessage("Not enough tileman credits");
+                player.sendMessage(player.getLang().trans("command.commandplayer.unlock.notenough"));
                 return true;
             }
 
             player.unlockMap(mapId);
             player.setTilemanCredits(player.getTilemanCredits() - 1);
             ((PlayerData) DatabaseManager.get(PlayerData.class)).update(player);
-            player.sendMessage("Unlocked map " + mapId + ". Credits left: " + player.getTilemanCredits());
+            player.sendMessage(player.getLang().trans("command.commandplayer.unlock.success",
+                    String.valueOf(mapId), String.valueOf(player.getTilemanCredits())));
         } catch (NumberFormatException e) {
-            player.sendMessage("Usage: .unlockid <mapId>");
+            player.sendMessage(player.getLang().trans("command.commandplayer.unlockid.usage.format"));
         }
         return true;
     }
@@ -580,9 +611,9 @@ public class CommandPlayer {
     private static boolean commandAutoUnlock(Player player, String msg) {
         player.setAutoUnlock(!player.isAutoUnlock());
         if (player.isAutoUnlock()) {
-            player.sendMessage("Auto unlock enabled");
+            player.sendMessage(player.getLang().trans("command.commandplayer.autounlock.enabled"));
         } else {
-            player.sendMessage("Auto unlock disabled");
+            player.sendMessage(player.getLang().trans("command.commandplayer.autounlock.disabled"));
         }
         return true;
     }
@@ -590,7 +621,11 @@ public class CommandPlayer {
 
     private static boolean commandTileman(Player player, String msg) {
         int requirement = player.getXpForNextCredit();
-        player.sendTypeMessage("Tileman", "Map Credits: " + player.getTilemanCredits() + " / Map Credit XP: " + player.getTilemanCreditXp() + "/ XP to next credit : "  + requirement);
+        player.sendTypeMessage(player.getLang().trans("command.commandplayer.tileman.title"),
+                player.getLang().trans("command.commandplayer.tileman.message",
+                        String.valueOf(player.getTilemanCredits()),
+                        String.valueOf(player.getTilemanCreditXp()),
+                        String.valueOf(requirement)));
         return true;
     }
 
